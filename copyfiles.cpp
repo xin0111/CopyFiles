@@ -28,7 +28,7 @@ void CopyFilesWindow::on_pushButton_deletePage_clicked()
 {
 	int nTabIndex = ui.tabWidget_rule->currentIndex();
 	ui.tabWidget_rule->removeTab(nTabIndex);
-	if (nTabIndex == 0)
+	if (ui.tabWidget_rule->count() == 0)
 		addNewPage();
 }
 void CopyFilesWindow::on_pushButton_clear_clicked()
@@ -65,18 +65,18 @@ void CopyFilesWindow::on_pushButton_start_clicked()
 	if (hasRule)
 	{
 		CopyThread::getInstance()->start();
-		ui.pushButton_start->setText(QString::fromLocal8Bit("ÕıÔÚ¿½±´..."));
+		ui.pushButton_start->setText(QString::fromLocal8Bit("æ­£åœ¨æ‹·è´..."));
 	}
 	else
 	{
-		tipMessage(QString::fromLocal8Bit("²»´æÔÚÕıÈ·¹æÔò!"));
+		tipMessage(QString::fromLocal8Bit("ä¸å­˜åœ¨æ­£ç¡®è§„åˆ™!"));
 	}
 }
 
 void CopyFilesWindow::on_reset()
 {
-	ui.pushButton_start->setText(QString::fromLocal8Bit("¿ªÊ¼¸´ÖÆ"));
-	tipMessage(QString::fromLocal8Bit("¸´ÖÆÍê³É."));
+	ui.pushButton_start->setText(QString::fromLocal8Bit("å¼€å§‹å¤åˆ¶"));
+	tipMessage(QString::fromLocal8Bit("å¤åˆ¶å®Œæˆ."));
 }
 
 void CopyFilesWindow::importFromXml(QString filePath)
@@ -165,14 +165,14 @@ void CopyFilesWindow::exportToXml(QString filePath)
 	ts.reset();
 	doc.save(ts, 4, QDomNode::EncodingFromTextStream);
 	file.close();
-	tipMessage(QString::fromLocal8Bit("µ¼³öÍê³É."));
+	tipMessage(QString::fromLocal8Bit("å¯¼å‡ºå®Œæˆ."));
 }
 
 
 
 void CopyFilesWindow::on_pushButton_export_clicked()
 {
-	QString filePath = QFileDialog::getSaveFileName(this, QString::fromLocal8Bit("±£´æÎÄ¼ş"),
+	QString filePath = QFileDialog::getSaveFileName(this, QString::fromLocal8Bit("ä¿å­˜æ–‡ä»¶"),
 		"CopyRule.xml",	"Xml Files (*.xml )");
 	if (!filePath.isEmpty())
 	{		
@@ -197,7 +197,7 @@ void CopyFilesWindow::tipMessage(QString msg)
 
 void CopyFilesWindow::on_showError(QString filePath)
 {
-	QString strMsg = QString::fromLocal8Bit("²»´æÔÚÎÄ¼ş(¼Ğ)\n");
+	QString strMsg = QString::fromLocal8Bit("ä¸å­˜åœ¨æ–‡ä»¶(å¤¹)\n");
 	strMsg.append(filePath);
 	tipMessage(strMsg);
 }
@@ -216,7 +216,7 @@ void CopyFilesWindow::addNewPage()
 		nNums << QVariant(strValue).toInt();
 	
 	}
-	int nValue = 0;
+	int nValue = -1;
 	int nIndex = 0;
 	qSort(nNums);
 	for (int i = 0; i < nNums.size();++i)
@@ -228,10 +228,10 @@ void CopyFilesWindow::addNewPage()
 		}
 	}
 
-	nIndex = (nValue != 0 ) ? nValue : nCount;
+	nIndex = (nValue != -1 ) ? nValue : nCount;
 
 	int addIndex = ui.tabWidget_rule->addTab(pPage,
-		QString::fromLocal8Bit("¹æÔòÒ³%1").arg(nIndex + 1));
+		QString::fromLocal8Bit("è§„åˆ™é¡µ%1").arg(nIndex + 1));
 	ui.tabWidget_rule->setCurrentIndex(addIndex);
 }
 
