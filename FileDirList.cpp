@@ -4,17 +4,18 @@
 #include <QFileInfo>
 #include <QDesktopServices>
 
+
 FileDirList::FileDirList(QWidget *parent)
 : QListWidget(parent)
 {
 	this->setAcceptDrops(true);
 	this->setDragEnabled(true);
-	this->setContextMenuPolicy(Qt::DefaultContextMenu);
-	m_pDeleteItemAction = new QAction(QString::fromLocal8Bit("删除"));
+	this->setContextMenuPolicy(Qt::DefaultContextMenu);	
+	m_pDeleteItemAction = new QAction(QString::fromLocal8Bit("删除"),this);
 	connect(m_pDeleteItemAction, SIGNAL(triggered()), this, SLOT(RemoveSelectItem()));
-	m_pClearAction = new QAction(QString::fromLocal8Bit("清空"));
+	m_pClearAction = new QAction(QString::fromLocal8Bit("清空"),this);
 	connect(m_pClearAction, SIGNAL(triggered()), this, SLOT(ClearItems()));
-	m_pOpenAction = new QAction(QString::fromLocal8Bit("打开文件夹"));
+	m_pOpenAction = new QAction(QString::fromLocal8Bit("打开文件夹"),this);
 	connect(m_pOpenAction, SIGNAL(triggered()), this, SLOT(OpenDir()));	
 	m_pMenu = new QMenu;
 	m_pMenu->addAction(m_pDeleteItemAction);
@@ -73,28 +74,34 @@ bool FileDirList::typeCheck(QString fileName)
 		bRet = true;
 	return bRet;
 }
+
 void FileDirList::dragEnterEvent(QDragEnterEvent *event)
-{	
-	if (event->mimeData()->hasFormat("text/uri-list"))
-	{
-		QList<QUrl> urls = event->mimeData()->urls();
-		if (!urls.isEmpty())
-		{			
-			for (int i = 0; i < urls.size(); i++)
-			{
-				QString fileName = urls.at(i).toLocalFile();
-				//防止重复添加
-				if (typeCheck(fileName) && !undoRepeat(fileName, true))
-				{
-					appendItem(fileName);
-				}				
-			}
-		}
-	}
+{
 	event->accept();
 }
+
+void FileDirList::dragMoveEvent(QDragMoveEvent *e)
+{
+	e->accept();
+}
+
 void FileDirList::dropEvent(QDropEvent *event)
 {
+	if (event->mimeData()->hasFormat("text/uri-list"))
+	{//资源文件拖拽
+		QList<QUrl> urls = event->mimeData()->urls();
+		for (int i = 0; i < urls.size(); i++)
+		{
+			QString fileName = urls.at(i).toLocalFile();
+			//防止重复添加
+			if (typeCheck(fileName) && !undoRepeat(fileName, true))
+			{
+				appendItem(fileName);
+			}
+		}
+		return;
+	}
+	//内部拖拽
 	FileDirList* source = qobject_cast<FileDirList*>(event->source());
 	if (source == this || m_pBuddyList == NULL) return;
 	if (source && source == m_pBuddyList)
@@ -125,12 +132,12 @@ void FileDirList::ClearItems()
 
 void FileDirList::OpenDir()
 {	
-	QString fielPath = currentItem()->text();
-	QFileInfo fileInfo(fielPath);
-	if (fileInfo.isFile()){
-		fielPath.append("/../");
+	QString filePath = currentItem()->text();
+	QFileInfo fileInfo(filePath);
+	if (!fileInfo.suffix().isEmpty()){
+		filePath.append("/../");		
 	}
-	QDesktopServices::openUrl(QUrl::fromLocalFile(fielPath));
+	QDesktopServices::openUrl(QUrl::fromLocalFile(filePath));
 }
 
 
@@ -139,8 +146,7 @@ void FileDirList::contextMenuEvent(QContextMenuEvent *event)
 	QListWidgetItem * pItem = currentItem();
 	if (pItem)
 	{
-		QFileInfo fileInfo(currentItem()->text());
-		m_pOpenAction->setVisible(fileInfo.exists());		
+		m_pOpenAction->setVisible(isValidFilePath(currentItem()->text()));		
 		m_pMenu->move(mapToGlobal(event->pos()));
 		m_pMenu->show();
 	}
@@ -172,7 +178,7 @@ void FileDirList::mouseDoubleClickEvent(QMouseEvent *event)
 	QListWidgetItem * pItem = itemAt(pos.x(), pos.y());
 	if (pItem)
 	{
-		editItem(pItem);
+		editItem(pItem);	
 	}
 	else
 	{
@@ -202,4 +208,15 @@ void FileDirList::closeEditor(QWidget *editor, QAbstractItemDelegate::EndEditHin
 		//TODO
 	}
 	QListWidget::closeEditor(editor, hint);
+}
+
+
+bool FileDirList::isValidFilePath(QString filePath)
+{
+	QFileInfo fileInfo(filePath);
+	QString strSuffix = fileInfo.suffix();
+	if (!strSuffix.isEmpty()){
+		filePath.append("/../");		
+	}
+	return QFileInfo::exists(filePath);
 }

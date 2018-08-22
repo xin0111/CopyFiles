@@ -4,14 +4,18 @@
 #include <QTextStream>
 #include <QFileDialog>
 #include <QSet>
+#include <QProgressBar>
 #include "Copythread.h"
+
 
 CopyFilesWindow::CopyFilesWindow(QWidget *parent)
 : QMainWindow(parent), m_nStep(0)
 {
 	ui.setupUi(this);	
-	connect(CopyThread::getInstance(), SIGNAL(sig_copySuccessed()), this, SLOT(on_reset()));
-	connect(CopyThread::getInstance(), SIGNAL(sig_errorfilePath(QString)), this, SLOT(on_showError(QString)));
+	ui.progressBar->setVisible(false);
+	connect(CopyThread::getInstance(), SIGNAL(sig_copyFromItem(QString)), this, SLOT(on_copyFromItemTip(QString)));
+	connect(CopyThread::getInstance(), SIGNAL(sig_copyFinished(bool)), this, SLOT(on_reset(bool)));
+	connect(CopyThread::getInstance(), SIGNAL(sig_copyError(QString)), this, SLOT(on_showError(QString)));
 }
 
 CopyFilesWindow::~CopyFilesWindow()
@@ -44,7 +48,7 @@ void CopyFilesWindow::on_pushButton_start_clicked()
 	CopyPage * rulePage = NULL;
 	QStringList fromList, toList;
 	CopyThread::getInstance()->ResetFileHash();
-	bool hasRule = false;
+	m_nMaxRange = 0;	m_nStep = 0;
 	for (int i = 0; i < nRule; i++)
 	{
 		rulePage = (CopyPage*)ui.tabWidget_rule->widget(i);
@@ -55,28 +59,35 @@ void CopyFilesWindow::on_pushButton_start_clicked()
 			toList = rulePage->CopyToPath();
 			if (toList.isEmpty())
 				continue;
+			m_nMaxRange += fromList.size();
 			for each (QString var in fromList)
 			{
-				CopyThread::getInstance()->AddFileHash(var, toList);
-				hasRule = true;
+				CopyThread::getInstance()->AddFileHash(var, toList);		
 			}
 		}
 	}
-	if (hasRule)
-	{
-		CopyThread::getInstance()->start();
-		ui.pushButton_start->setText(QString::fromLocal8Bit("æ­£åœ¨æ‹·è´..."));
-	}
-	else
-	{
-		tipMessage(QString::fromLocal8Bit("ä¸å­˜åœ¨æ­£ç¡®è§„åˆ™!"));
-	}
+
+	ui.progressBar->setRange(0, m_nMaxRange);
+	ui.progressBar->setVisible(true);		
+	CopyThread::getInstance()->start();
+	ui.pushButton_start->setText(QString::fromLocal8Bit("ÕýÔÚ¿½±´..."));
+
 }
 
-void CopyFilesWindow::on_reset()
+void CopyFilesWindow::on_copyFromItemTip(QString strItem)
 {
-	ui.pushButton_start->setText(QString::fromLocal8Bit("å¼€å§‹å¤åˆ¶"));
-	tipMessage(QString::fromLocal8Bit("å¤åˆ¶å®Œæˆ."));
+	ui.progressBar->setValue(m_nStep);
+	ui.label_progress->setText(strItem);
+	m_nStep += 1;
+}
+void CopyFilesWindow::on_reset(bool bSuccessed)
+{
+	ui.pushButton_start->setText(QString::fromLocal8Bit("¿ªÊ¼¸´ÖÆ"));
+	ui.progressBar->setValue(0);
+	ui.progressBar->setVisible(false);
+	ui.label_progress->setText("");
+	tipMessage(bSuccessed ? QString::fromLocal8Bit("¸´ÖÆÍê³É.") : 
+		QString::fromLocal8Bit("¸´ÖÆÖÕÖ¹."));
 }
 
 void CopyFilesWindow::importFromXml(QString filePath)
@@ -165,14 +176,14 @@ void CopyFilesWindow::exportToXml(QString filePath)
 	ts.reset();
 	doc.save(ts, 4, QDomNode::EncodingFromTextStream);
 	file.close();
-	tipMessage(QString::fromLocal8Bit("å¯¼å‡ºå®Œæˆ."));
+	tipMessage(QString::fromLocal8Bit("µ¼³öÍê³É."));
 }
 
 
 
 void CopyFilesWindow::on_pushButton_export_clicked()
 {
-	QString filePath = QFileDialog::getSaveFileName(this, QString::fromLocal8Bit("ä¿å­˜æ–‡ä»¶"),
+	QString filePath = QFileDialog::getSaveFileName(this, QString::fromLocal8Bit("±£´æÎÄ¼þ"),
 		"CopyRule.xml",	"Xml Files (*.xml )");
 	if (!filePath.isEmpty())
 	{		
@@ -191,14 +202,13 @@ void CopyFilesWindow::on_pushButton_import_clicked()
 void CopyFilesWindow::tipMessage(QString msg)
 {
 	QMessageBox box;
+	box.setWindowTitle(QString::fromLocal8Bit("ÌáÊ¾"));
 	box.setText(msg);
 	box.exec();
 }
 
-void CopyFilesWindow::on_showError(QString filePath)
+void CopyFilesWindow::on_showError(QString strMsg)
 {
-	QString strMsg = QString::fromLocal8Bit("ä¸å­˜åœ¨æ–‡ä»¶(å¤¹)\n");
-	strMsg.append(filePath);
 	tipMessage(strMsg);
 }
 
@@ -231,7 +241,8 @@ void CopyFilesWindow::addNewPage()
 	nIndex = (nValue != -1 ) ? nValue : nCount;
 
 	int addIndex = ui.tabWidget_rule->addTab(pPage,
-		QString::fromLocal8Bit("è§„åˆ™é¡µ%1").arg(nIndex + 1));
+		QString::fromLocal8Bit("¹æÔòÒ³%1").arg(nIndex + 1));
 	ui.tabWidget_rule->setCurrentIndex(addIndex);
 }
+
 

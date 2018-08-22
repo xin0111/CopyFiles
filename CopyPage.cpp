@@ -3,7 +3,9 @@
 CopyPage::CopyPage(QWidget *parent)
 	: QWidget(parent)
 {
-	ui.setupUi(this);
+	ui.setupUi(this);	
+	ui.splitter->setStretchFactor(0, 2);
+	ui.splitter->setStretchFactor(1, 1);	
 	ui.listWidget_copyFrom->setCopyDirType(FileDirList::ALLType);
 	ui.listWidget_copyFrom->setBuddyListWidget(ui.listWidget_copyTo);
 	ui.listWidget_copyTo->setCopyDirType(FileDirList::DirPath);
@@ -55,3 +57,5 @@ void CopyPage::SetRuleEnable(bool bState)
 {
 	ui.groupBox_From->setChecked(bState);
 }
+
+

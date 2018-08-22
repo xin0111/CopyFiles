@@ -19,6 +19,9 @@
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
+     <property name="handleWidth">
+      <number>5</number>
+     </property>
      <widget class="QGroupBox" name="groupBox_From">
       <property name="enabled">
        <bool>true</bool>
@@ -30,7 +33,7 @@
        </size>
       </property>
       <property name="title">
-       <string>要复制的文件(夹)</string>
+       <string>要复制的文件(文件夹下内容)</string>
       </property>
       <property name="flat">
        <bool>false</bool>

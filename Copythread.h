@@ -20,14 +20,27 @@ public:
 protected:
 	virtual void run();
 signals:	
-	void sig_copySuccessed();
-	void sig_errorfilePath(QString filePath);
+	void sig_copyFromItem(QString filePath);
+	void sig_copyFinished(bool bSuccessed);
+	void sig_copyError(QString filePath);
 private:
+	enum CopyError
+	{
+		NON_EXISTENT,
+		UNABLE_CREATE,
+		COPY_FAILED,
+		EMPTY_RULE,
+		ERROR_REGEX
+	};
 	bool copyFileToPath(QString sourceDir, QString toDir, bool coverFileIfExist=true);	
 	bool copyDirectoryFiles(const QString &fromDir, const QString &toDir, 
-		bool coverFileIfExist = true, bool isRoot=false);
+		bool coverFileIfExist = true, bool addRoot = false);
+	void setErrorString(CopyError errorType, QString filePath);
 public:
 	QHash<QString, QStringList> m_fileHash;
+	bool   m_hasError;
+	QString m_strError;
+	QRegExp m_regFile;
 };
 
 

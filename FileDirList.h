@@ -24,9 +24,11 @@ public:
 	void setBuddyListWidget(QListWidget * pBuddyList);	
 	bool undoRepeat(QString fileName, bool andBuddy);
 	QListWidgetItem * appendItem(QString filePath);
-protected:
-	void dropEvent(QDropEvent *event);
+	bool isValidFilePath(QString filePath);
+protected:	
 	void dragEnterEvent(QDragEnterEvent *event);
+	void dragMoveEvent(QDragMoveEvent *e);
+	void dropEvent(QDropEvent *event);
 	virtual void contextMenuEvent(QContextMenuEvent *event);
 	void keyPressEvent(QKeyEvent *event);
 	void mouseDoubleClickEvent(QMouseEvent *event);
@@ -37,6 +39,7 @@ public slots:
 	void OpenDir();	
 Q_SLOT
 	void closeEditor(QWidget *editor, QAbstractItemDelegate::EndEditHint hint);
+
 
 private:
 	CopyDirType m_copydirType;
