@@ -1,6 +1,5 @@
 <RCC>
     <qresource prefix="/">
         <file>icon1.ico</file>
-        <file>Resources/dragcopycursor_32.png</file>
     </qresource>
 </RCC>
