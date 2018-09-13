@@ -139,19 +139,24 @@ bool CopyThread::copyDirectoryFiles(const QString &fromDir,
 		if (fileInfo.fileName() == "." || fileInfo.fileName() == "..")
 			continue;
 		qDebug()<<fileInfo.filePath();
-		//正则匹配
-		if(!m_regFile.isEmpty() && (
-			fileInfo.isDir() ||
-			!m_regFile.exactMatch(fileInfo.filePath())))
-			continue;
+		////正则匹配 不递归子文件价
+		//if (!m_regFile.isEmpty() && (
+		//	fileInfo.isDir() ||
+		//	!m_regFile.exactMatch(fileInfo.filePath())))
+		//	continue;
 
 		if (fileInfo.isDir()){    /**< 当为目录时，递归的进行copy */
 			if (!copyDirectoryFiles(fileInfo.filePath(),
-				targetDir.filePath(fileInfo.fileName()),
+				!m_regFile.isEmpty() ? newToDir:targetDir.filePath(fileInfo.fileName()),
 				coverFileIfExist))
 				return false;
 		}
-		else{            /**< 当允许覆盖操作时，将旧文件进行删除操作 */
+		else{   
+			//正则匹配
+			if (!m_regFile.isEmpty() && (			
+				!m_regFile.exactMatch(fileInfo.filePath())))
+				continue;
+			/**< 当允许覆盖操作时，将旧文件进行删除操作 */
 			if (coverFileIfExist && targetDir.exists(fileInfo.fileName())){
 				targetDir.remove(fileInfo.fileName());
 			}
