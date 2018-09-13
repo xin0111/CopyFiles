@@ -19,16 +19,17 @@ public slots:
 	void on_pushButton_clear_clicked();
 	void on_pushButton_start_clicked();
 	void on_pushButton_deletePage_clicked();
-	void on_copyFromItemTip(QString strItem);
-	void on_reset(bool bSuccessed);
+	void on_copyFromItemTip(QString strItem);	
+	void on_reset(bool bSuccessed, QString strMsg);
 	void on_pushButton_export_clicked();
-	void on_pushButton_import_clicked();
-	void on_showError(QString strMsg);
+	void on_pushButton_import_clicked();	
+	void on_setMaxRange(int nMaxRange);
 public:
 	void importFromXml(QString filePath);
 	void exportToXml(QString filePath);
 private:
 	void addNewPage();	
+
 
 	Ui::CopyFilesClass ui;
 	int m_nStep;
