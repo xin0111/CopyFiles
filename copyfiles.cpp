@@ -5,6 +5,7 @@
 #include <QFileDialog>
 #include <QSet>
 #include <QProgressBar>
+#include <QFontMetrics>
 #include "Copythread.h"
 
 
@@ -14,8 +15,8 @@ CopyFilesWindow::CopyFilesWindow(QWidget *parent)
 	ui.setupUi(this);	
 	ui.progressBar->setVisible(false);
 	connect(CopyThread::getInstance(), SIGNAL(sig_copyFromItem(QString)), this, SLOT(on_copyFromItemTip(QString)));
-	connect(CopyThread::getInstance(), SIGNAL(sig_copyFinished(bool)), this, SLOT(on_reset(bool)));
-	connect(CopyThread::getInstance(), SIGNAL(sig_copyError(QString)), this, SLOT(on_showError(QString)));
+	connect(CopyThread::getInstance(), SIGNAL(sig_copyRuleCount(int)), this, SLOT(on_setMaxRange(int)));
+	connect(CopyThread::getInstance(), SIGNAL(sig_copyFinished(bool, QString)), this, SLOT(on_reset(bool, QString)));
 }
 
 CopyFilesWindow::~CopyFilesWindow()
@@ -47,7 +48,7 @@ void CopyFilesWindow::on_pushButton_start_clicked()
 	if (nRule == 0) return;
 	CopyPage * rulePage = NULL;
 	QStringList fromList, toList;
-	CopyThread::getInstance()->ResetFileHash();
+	CopyThread::getInstance()->ResetFileRules();
 	m_nMaxRange = 0;	m_nStep = 0;
 	for (int i = 0; i < nRule; i++)
 	{
@@ -59,35 +60,47 @@ void CopyFilesWindow::on_pushButton_start_clicked()
 			toList = rulePage->CopyToPath();
 			if (toList.isEmpty())
 				continue;
-			m_nMaxRange += fromList.size();
+			
 			for each (QString var in fromList)
 			{
-				CopyThread::getInstance()->AddFileHash(var, toList);		
+				CopyThread::getInstance()->AddFileHash(var, toList);
 			}
 		}
 	}
-
-	ui.progressBar->setRange(0, m_nMaxRange);
-	ui.progressBar->setVisible(true);		
 	CopyThread::getInstance()->start();
-	ui.pushButton_start->setText(QString::fromLocal8Bit("ÕýÔÚ¿½±´..."));
+	ui.pushButton_start->setText(QString::fromLocal8Bit("æ­£åœ¨æŸ¥æ‰¾æ–‡ä»¶..."));
 
+}
+
+void CopyFilesWindow::on_setMaxRange(int nMaxRange)
+{
+	m_nMaxRange = nMaxRange;
+	ui.progressBar->setRange(0, m_nMaxRange);
+	ui.progressBar->setVisible(true);
+	ui.pushButton_start->setText(QString::fromLocal8Bit("æ­£åœ¨æ‹·è´..."));
 }
 
 void CopyFilesWindow::on_copyFromItemTip(QString strItem)
 {
 	ui.progressBar->setValue(m_nStep);
+
+	QFont ft;
+	QFontMetrics fm(ft);
+	strItem = fm.elidedText(strItem, Qt::ElideMiddle, ui.label_progress->width());
 	ui.label_progress->setText(strItem);
 	m_nStep += 1;
 }
-void CopyFilesWindow::on_reset(bool bSuccessed)
+
+void CopyFilesWindow::on_reset(bool bSuccessed, QString strMsg)
 {
-	ui.pushButton_start->setText(QString::fromLocal8Bit("¿ªÊ¼¸´ÖÆ"));
+	ui.pushButton_start->setText(QString::fromLocal8Bit("å¼€å§‹å¤åˆ¶"));
 	ui.progressBar->setValue(0);
 	ui.progressBar->setVisible(false);
 	ui.label_progress->setText("");
-	tipMessage(bSuccessed ? QString::fromLocal8Bit("¸´ÖÆÍê³É.") : 
-		QString::fromLocal8Bit("¸´ÖÆÖÕÖ¹."));
+	if (!bSuccessed)
+		tipMessage(strMsg);
+	tipMessage(bSuccessed ? QString::fromLocal8Bit("å¤åˆ¶å®Œæˆ.") : 
+		QString::fromLocal8Bit("å¤åˆ¶ç»ˆæ­¢."));
 }
 
 void CopyFilesWindow::importFromXml(QString filePath)
@@ -176,14 +189,14 @@ void CopyFilesWindow::exportToXml(QString filePath)
 	ts.reset();
 	doc.save(ts, 4, QDomNode::EncodingFromTextStream);
 	file.close();
-	tipMessage(QString::fromLocal8Bit("µ¼³öÍê³É."));
+	tipMessage(QString::fromLocal8Bit("å¯¼å‡ºå®Œæˆ."));
 }
 
 
 
 void CopyFilesWindow::on_pushButton_export_clicked()
 {
-	QString filePath = QFileDialog::getSaveFileName(this, QString::fromLocal8Bit("±£´æÎÄ¼þ"),
+	QString filePath = QFileDialog::getSaveFileName(this, QString::fromLocal8Bit("ä¿å­˜æ–‡ä»¶"),
 		"CopyRule.xml",	"Xml Files (*.xml )");
 	if (!filePath.isEmpty())
 	{		
@@ -202,14 +215,9 @@ void CopyFilesWindow::on_pushButton_import_clicked()
 void CopyFilesWindow::tipMessage(QString msg)
 {
 	QMessageBox box;
-	box.setWindowTitle(QString::fromLocal8Bit("ÌáÊ¾"));
+	box.setWindowTitle(QString::fromLocal8Bit("æç¤º"));
 	box.setText(msg);
 	box.exec();
-}
-
-void CopyFilesWindow::on_showError(QString strMsg)
-{
-	tipMessage(strMsg);
 }
 
 void CopyFilesWindow::addNewPage()
@@ -241,7 +249,7 @@ void CopyFilesWindow::addNewPage()
 	nIndex = (nValue != -1 ) ? nValue : nCount;
 
 	int addIndex = ui.tabWidget_rule->addTab(pPage,
-		QString::fromLocal8Bit("¹æÔòÒ³%1").arg(nIndex + 1));
+		QString::fromLocal8Bit("è§„åˆ™é¡µ%1").arg(nIndex + 1));
 	ui.tabWidget_rule->setCurrentIndex(addIndex);
 }
 
