@@ -94,7 +94,8 @@ bool CopyThread::copyFileToPath(QString sourceDir,
 	return true;
 }
 
-bool CopyThread::copyDirectoryRules(const QString &fromDir, const QString &toDir, bool addRoot)
+bool CopyThread::copyDirectoryRules(const QString &fromDir, const QString &toDir,
+	bool addRoot, bool findChildDir)
 {
 	QDir sourceDir(fromDir);
 	if (!sourceDir.exists()){
@@ -118,7 +119,9 @@ bool CopyThread::copyDirectoryRules(const QString &fromDir, const QString &toDir
 		if (fileInfo.fileName() == "." || fileInfo.fileName() == "..")
 			continue;
 		qDebug() << fileInfo.filePath();
-		if (fileInfo.isDir()){    /**< 当为目录时，递归的进行copy */
+		if (fileInfo.isDir()){    /**< 当为目录时，递归的进行copy */		
+			if (!findChildDir)
+				continue;
 			if (!copyDirectoryRules(fileInfo.filePath(),
 				!m_regFile.isEmpty() ? newToDir : targetDir.filePath(fileInfo.fileName())))
 				return false;
@@ -144,19 +147,34 @@ void CopyThread::AddFileHash(QString strFrom, QStringList listTo)
 void CopyThread::AddFileRules(QString strFrom, QStringList listTo)
 {
 	QFileInfo fromFileInfo(strFrom);
-
+	
 	for (size_t i = 0; i < listTo.size(); i++)
 	{
 		m_regFile = QRegExp();
+		bool bAddRoot = false;
+		bool bFindChirdDir = true;
 		if (!fromFileInfo.exists() && !fromFileInfo.suffix().isEmpty())
 		{
 			QString strReg = fromFileInfo.fileName();
 			qDebug() << strReg;
 			if (strReg.indexOf("*") != -1)
-			{//存在正则
-				m_regFile = QRegExp(".*(\\|/)" + strReg);
+			{//存在正则				
+				if (strReg.split("-").size() >= 2)
+				{//正则是否匹配子目录
+					bFindChirdDir = false;
+					strReg = strReg.split("-")[0];
+				}
+				else if (strReg.split("+").size() >= 2)
+				{//是否创建From根目录
+					bAddRoot = true;
+				}
+				if (strReg != ("*.+"))
+				{
+					m_regFile = QRegExp(".*(\\|/)" + strReg);
+				}			
 				if (!m_regFile.isValid())
 					setErrorString(ERROR_REGEX, strFrom);
+
 				strFrom = fromFileInfo.dir().path();
 				fromFileInfo.setFile(strFrom);
 			}
@@ -169,7 +187,7 @@ void CopyThread::AddFileRules(QString strFrom, QStringList listTo)
 		}
 		else if (fromFileInfo.isDir())
 		{
-			copyDirectoryRules(strFrom, listTo.at(i), false);
+			copyDirectoryRules(strFrom, listTo.at(i), bAddRoot, bFindChirdDir);
 		}
 		else
 		{
