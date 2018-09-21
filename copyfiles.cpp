@@ -44,6 +44,11 @@ void CopyFilesWindow::on_pushButton_clear_clicked()
 
 void CopyFilesWindow::on_pushButton_start_clicked()
 {	
+	if (CopyThread::getInstance()->isRunning())
+	{
+		tipMessage(QString::fromLocal8Bit("正在拷贝中..."));
+		return;
+	}
 	int nRule = ui.tabWidget_rule->count();
 	if (nRule == 0) return;
 	CopyPage * rulePage = NULL;
@@ -214,10 +219,7 @@ void CopyFilesWindow::on_pushButton_import_clicked()
 
 void CopyFilesWindow::tipMessage(QString msg)
 {
-	QMessageBox box;
-	box.setWindowTitle(QString::fromLocal8Bit("提示"));
-	box.setText(msg);
-	box.exec();
+	QMessageBox::information(this,QString::fromLocal8Bit("提示"),msg);
 }
 
 void CopyFilesWindow::addNewPage()
@@ -251,6 +253,12 @@ void CopyFilesWindow::addNewPage()
 	int addIndex = ui.tabWidget_rule->addTab(pPage,
 		QString::fromLocal8Bit("规则页%1").arg(nIndex + 1));
 	ui.tabWidget_rule->setCurrentIndex(addIndex);
+}
+
+void CopyFilesWindow::on_pushButton_Help_clicked()
+{
+	QMessageBox::about(this, tr("Help"),
+		QString::fromLocal8Bit("特定正则使用规则:\n\t*.+ : 自动创建拷贝根目录；\n\t*.dll: *.文件后缀，查找根目录下所有匹配项；\n\t*.dll- : *.文件后缀-，只拷贝根目录下的匹配项。"));
 }
 
 
