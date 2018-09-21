@@ -70,6 +70,13 @@
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_Help">
+          <property name="text">
+           <string>使用说明</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </item>
      </layout>
