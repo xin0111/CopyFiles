@@ -49,8 +49,9 @@ private:
 		EMPTY_RULE,
 		ERROR_REGEX
 	};
-	bool copyFileToPath(QString sourceDir, QString toDir, bool coverFileIfExist=true);	
-	bool copyDirectoryRules(const QString &fromDir, const QString &toDir, bool addRoot = false);
+	bool copyFileToPath(QString sourceDir, QString toDir, bool coverFileIfExist=true);		
+	bool copyDirectoryRules(const QString &fromDir, const QString &toDir, 
+		bool addRoot = false, bool findChildDir = true);
 	void setErrorString(CopyError errorType, QString filePath);
 public:
 	QHash<QString, QStringList> m_fileHash;
