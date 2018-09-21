@@ -24,6 +24,7 @@ public slots:
 	void on_pushButton_export_clicked();
 	void on_pushButton_import_clicked();	
 	void on_setMaxRange(int nMaxRange);
+	void on_pushButton_Help_clicked();
 public:
 	void importFromXml(QString filePath);
 	void exportToXml(QString filePath);
