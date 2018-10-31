@@ -40,6 +40,7 @@ void CopyFilesWindow::on_pushButton_deletePage_clicked()
 void CopyFilesWindow::on_pushButton_clear_clicked()
 {
 	ui.tabWidget_rule->clear();
+	this->setWindowTitle(m_strTitle);
 	addNewPage();
 }
 
