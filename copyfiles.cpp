@@ -13,6 +13,7 @@ CopyFilesWindow::CopyFilesWindow(QWidget *parent)
 : QMainWindow(parent), m_nStep(0)
 {
 	ui.setupUi(this);	
+	m_strTitle = this->windowTitle();
 	ui.progressBar->setVisible(false);
 	connect(CopyThread::getInstance(), SIGNAL(sig_copyFromItem(QString)), this, SLOT(on_copyFromItemTip(QString)));
 	connect(CopyThread::getInstance(), SIGNAL(sig_copyRuleCount(int)), this, SLOT(on_setMaxRange(int)));
@@ -214,7 +215,11 @@ void CopyFilesWindow::on_pushButton_import_clicked()
 	QString fileName = QFileDialog::getOpenFileName(this,
 		tr("Open File"), "", tr("Xml Files (*.xml )"));
 	if (!fileName.isEmpty())
+	{
 		importFromXml(fileName);
+		QFileInfo fileInfo(fileName);
+		this->setWindowTitle(m_strTitle + " - " + fileInfo.fileName());
+	}
 }
 
 void CopyFilesWindow::tipMessage(QString msg)
