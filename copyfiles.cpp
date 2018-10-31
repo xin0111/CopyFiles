@@ -35,7 +35,10 @@ void CopyFilesWindow::on_pushButton_deletePage_clicked()
 	int nTabIndex = ui.tabWidget_rule->currentIndex();
 	ui.tabWidget_rule->removeTab(nTabIndex);
 	if (ui.tabWidget_rule->count() == 0)
-		addNewPage();
+	{
+		this->setWindowTitle(m_strTitle);
+		addNewPage();		
+	}
 }
 void CopyFilesWindow::on_pushButton_clear_clicked()
 {
@@ -208,6 +211,8 @@ void CopyFilesWindow::on_pushButton_export_clicked()
 	if (!filePath.isEmpty())
 	{		
 		exportToXml(filePath);
+		QFileInfo fileInfo(filePath);
+		this->setWindowTitle(fileInfo.fileName() + " - " + m_strTitle);
 	}
 }
 
@@ -219,7 +224,7 @@ void CopyFilesWindow::on_pushButton_import_clicked()
 	{
 		importFromXml(fileName);
 		QFileInfo fileInfo(fileName);
-		this->setWindowTitle(m_strTitle + " - " + fileInfo.fileName());
+		this->setWindowTitle(fileInfo.fileName() + " - " + m_strTitle);
 	}
 }
 
@@ -230,7 +235,7 @@ void CopyFilesWindow::tipMessage(QString msg)
 
 void CopyFilesWindow::addNewPage()
 {
-	CopyPage* pPage = new CopyPage();	
+	CopyPage* pPage = new CopyPage(this);	
 	QRegExp rx("\\d+");
 	QList<int> nNums;
 	int nCount = ui.tabWidget_rule->count();
@@ -266,5 +271,3 @@ void CopyFilesWindow::on_pushButton_Help_clicked()
 	QMessageBox::about(this, tr("Help"),
 		QString::fromLocal8Bit("特定正则使用规则:\n\t*.+ : 自动创建拷贝根目录；\n\t*.dll: *.文件后缀，查找根目录下所有匹配项；\n\t*.dll- : *.文件后缀-，只拷贝根目录下的匹配项。"));
 }
-
-
