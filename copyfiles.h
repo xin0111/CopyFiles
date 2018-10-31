@@ -35,6 +35,7 @@ private:
 	Ui::CopyFilesClass ui;
 	int m_nStep;
 	int m_nMaxRange;	
+	QString m_strTitle;
 };
 
 #endif // COPYFILES_H
