@@ -162,7 +162,7 @@ QListWidgetItem * FileDirList::appendItem(QString filePath)
 	newItem->setText(filePath);
 	//设置可编辑 
 	newItem->setFlags(newItem->flags() | Qt::ItemIsEditable);
-	newItem->setSelected(true);
+	//newItem->setSelected(true);
 	this->insertItem(count(), newItem);		
 	return newItem;
 }
