@@ -10,14 +10,15 @@ FileDirList::FileDirList(QWidget *parent)
 {
 	this->setAcceptDrops(true);
 	this->setDragEnabled(true);
+	this->setSelectionMode(QListWidget::ExtendedSelection);
 	this->setContextMenuPolicy(Qt::DefaultContextMenu);	
-	m_pDeleteItemAction = new QAction(QString::fromLocal8Bit("É¾³ı"),this);
+	m_pDeleteItemAction = new QAction(QString::fromLocal8Bit("åˆ é™¤"),this);
 	connect(m_pDeleteItemAction, SIGNAL(triggered()), this, SLOT(RemoveSelectItem()));
-	m_pClearAction = new QAction(QString::fromLocal8Bit("Çå¿Õ"),this);
+	m_pClearAction = new QAction(QString::fromLocal8Bit("æ¸…ç©º"),this);
 	connect(m_pClearAction, SIGNAL(triggered()), this, SLOT(ClearItems()));
-	m_pOpenAction = new QAction(QString::fromLocal8Bit("´ò¿ªÎÄ¼ş¼Ğ"),this);
-	connect(m_pOpenAction, SIGNAL(triggered()), this, SLOT(OpenDir()));	
-	m_pMenu = new QMenu;
+	m_pOpenAction = new QAction(QString::fromLocal8Bit("æ‰“å¼€æ–‡ä»¶å¤¹"),this);	
+	connect(m_pOpenAction, &QAction::triggered, this, &FileDirList::OpenDir);
+	m_pMenu = new QMenu(this);
 	m_pMenu->addAction(m_pDeleteItemAction);
 	m_pMenu->addAction(m_pOpenAction);
 	m_pMenu->addAction(m_pClearAction);
@@ -36,7 +37,7 @@ void FileDirList::setBuddyListWidget(QListWidget * pBuddyList)
 
 bool FileDirList::undoRepeat(QString fileName, bool andBuddy)
 {
-	//·ÀÖ¹ÖØ¸´Ìí¼Ó
+	//é˜²æ­¢é‡å¤æ·»åŠ 
 	QString strShow;
 	bool bRet = false;
 	for (int i = 0; i < this->count(); ++i)
@@ -66,6 +67,7 @@ bool FileDirList::typeCheck(QString fileName)
 {
 	bool bRet = false;
 	QFileInfo fileInfo(fileName);
+	
 	if (m_copydirType == FilePath && fileInfo.isFile())
 		bRet = true;
 	if (m_copydirType == DirPath && fileInfo.isDir())
@@ -88,12 +90,12 @@ void FileDirList::dragMoveEvent(QDragMoveEvent *e)
 void FileDirList::dropEvent(QDropEvent *event)
 {
 	if (event->mimeData()->hasFormat("text/uri-list"))
-	{//×ÊÔ´ÎÄ¼şÍÏ×§
+	{//èµ„æºæ–‡ä»¶æ‹–æ‹½
 		QList<QUrl> urls = event->mimeData()->urls();
 		for (int i = 0; i < urls.size(); i++)
 		{
 			QString fileName = urls.at(i).toLocalFile();
-			//·ÀÖ¹ÖØ¸´Ìí¼Ó
+			//é˜²æ­¢é‡å¤æ·»åŠ 
 			if (typeCheck(fileName) && !undoRepeat(fileName, true))
 			{
 				appendItem(fileName);
@@ -101,22 +103,23 @@ void FileDirList::dropEvent(QDropEvent *event)
 		}
 		return;
 	}
-	//ÄÚ²¿ÍÏ×§
+	//å†…éƒ¨æ‹–æ‹½
 	FileDirList* source = qobject_cast<FileDirList*>(event->source());
-	if (source == this || m_pBuddyList == NULL) return;
-	if (source && source == m_pBuddyList)
+
+	if (!source || source == this) return;
+
+	QList<QListWidgetItem*>& items = source->selectedItems();
+	for (int i = 0; i < items.size();++i)
 	{
-		QString filePath = m_pBuddyList->currentItem()->text();
-		//·ÀÖ¹ÖØ¸´Ìí¼Ó
-		if (typeCheck(filePath) && !undoRepeat(filePath, false))
+		QString filePath = items.at(i)->text();
+		//é˜²æ­¢é‡å¤æ·»åŠ 
+		if (typeCheck(filePath) && !undoRepeat(filePath, source != m_pBuddyList))
 		{
 			appendItem(filePath);
-			//É¾³ıÔ´Item
-			m_pBuddyList->takeItem(m_pBuddyList->currentRow());
+			//åˆ é™¤æºItem
+			source->takeItem(source->currentRow());
 		}
 	}
-
-	//QListWidget::dropEvent(event);
 }
 
 void FileDirList::RemoveSelectItem()
@@ -155,9 +158,9 @@ void FileDirList::contextMenuEvent(QContextMenuEvent *event)
 
 QListWidgetItem * FileDirList::appendItem(QString filePath)
 {
-	QListWidgetItem *newItem = new QListWidgetItem;
+	QListWidgetItem *newItem = new QListWidgetItem(this);
 	newItem->setText(filePath);
-	//ÉèÖÃ¿É±à¼­ 
+	//è®¾ç½®å¯ç¼–è¾‘ 
 	newItem->setFlags(newItem->flags() | Qt::ItemIsEditable);
 	newItem->setSelected(true);
 	this->insertItem(count(), newItem);		
@@ -185,7 +188,7 @@ void FileDirList::mouseDoubleClickEvent(QMouseEvent *event)
 		this->addItem("");
 		pItem = item(count() - 1);
 		if (pItem)
-		{
+		{	
 			pItem->setFlags(pItem->flags() | Qt::ItemIsEditable);
 			setCurrentItem(pItem);			
 			editItem(pItem);			
