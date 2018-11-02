@@ -111,21 +111,25 @@ void FileDirList::dropEvent(QDropEvent *event)
 	QList<QListWidgetItem*>& items = source->selectedItems();
 	for (int i = 0; i < items.size();++i)
 	{
-		QString filePath = items.at(i)->text();
+		QListWidgetItem* pItem = items.at(i);
+		QString filePath = pItem->text();
 		//防止重复添加
 		if (typeCheck(filePath) && !undoRepeat(filePath, source != m_pBuddyList))
 		{
 			appendItem(filePath);
-			//删除源Item
-			source->takeItem(source->currentRow());
+			//删除源Item		
+			source->takeItem(source->row(pItem));
 		}
 	}
 }
 
 void FileDirList::RemoveSelectItem()
 {
-	int nRowIndex = this->currentRow();
-	takeItem(nRowIndex);
+	QList<QListWidgetItem*>& indexList = this->selectedItems();
+	for (int i = 0; i < indexList.size(); ++i)
+	{
+		this->takeItem(this->row(indexList.at(i)));
+	}
 }
 
 void FileDirList::ClearItems()
@@ -171,7 +175,7 @@ void FileDirList::keyPressEvent(QKeyEvent *event)
 {
 	if (event->key() == Qt::Key_Delete)
 	{
-		takeItem(currentRow());
+		RemoveSelectItem();
 	}
 }
 
