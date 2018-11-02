@@ -5,8 +5,6 @@
 CopyTab::CopyTab(QWidget *parent)
 	: QTabWidget(parent)
 {
-	this->setMouseTracking(true);
-
 	this->setAcceptDrops(true);
 }
 
