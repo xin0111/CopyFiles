@@ -140,8 +140,8 @@ void FileDirList::OpenDir()
 {	
 	QString filePath = currentItem()->text();
 	QFileInfo fileInfo(filePath);
-	if (!fileInfo.suffix().isEmpty()){
-		filePath.append("/../");		
+	if (!fileInfo.isDir()){
+		filePath.append("/../");
 	}
 	QDesktopServices::openUrl(QUrl::fromLocalFile(filePath));
 }
@@ -231,8 +231,7 @@ void FileDirList::closeEditor(QWidget *editor, QAbstractItemDelegate::EndEditHin
 bool FileDirList::isValidFilePath(QString filePath)
 {
 	QFileInfo fileInfo(filePath);
-	QString strSuffix = fileInfo.suffix();
-	if (!strSuffix.isEmpty()){
+	if (!fileInfo.isDir()){
 		filePath.append("/../");		
 	}
 	return QFileInfo::exists(filePath);
