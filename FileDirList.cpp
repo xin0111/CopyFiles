@@ -234,6 +234,7 @@ void FileDirList::mouseDoubleClickEvent(QMouseEvent *event)
 	QListWidgetItem * pItem = itemAt(pos.x(), pos.y());
 	if (pItem)
 	{
+		pItem->setFlags(pItem->flags() | Qt::ItemIsEditable);
 		editItem(pItem);	
 	}
 	else
