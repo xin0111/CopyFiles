@@ -67,12 +67,11 @@ bool FileDirList::typeCheck(QString fileName)
 {
 	bool bRet = false;
 	QFileInfo fileInfo(fileName);
-	
+	if (m_copydirType == ALLType)
+		bRet = true;
 	if (m_copydirType == FilePath && fileInfo.isFile())
 		bRet = true;
 	if (m_copydirType == DirPath && fileInfo.isDir())
-		bRet = true;
-	if (m_copydirType == ALLType && fileInfo.exists())
 		bRet = true;
 	return bRet;
 }
@@ -173,9 +172,20 @@ QListWidgetItem * FileDirList::appendItem(QString filePath)
 
 void FileDirList::keyPressEvent(QKeyEvent *event)
 {
-	if (event->key() == Qt::Key_Delete)
+
+	switch (event->key())
 	{
+	case  Qt::Key_Delete:
 		RemoveSelectItem();
+		break;
+	case Qt::Key_Up:
+	{
+					 
+					   
+						
+	}break;
+	default:
+		break;
 	}
 }
 
