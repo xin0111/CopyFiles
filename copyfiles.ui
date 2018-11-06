@@ -22,7 +22,7 @@
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
-       <widget class="CopyTab" name="tabWidget_rule">
+       <widget class="QTabWidget" name="tabWidget_rule">
         <property name="movable">
          <bool>true</bool>
         </property>
@@ -156,12 +156,6 @@
    <class>CopyPage</class>
    <extends>QWidget</extends>
    <header>copypage.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>CopyTab</class>
-   <extends>QTabWidget</extends>
-   <header>copytab.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
