@@ -127,8 +127,9 @@ void FileDirList::RemoveSelectItem()
 	QList<QListWidgetItem*>& indexList = this->selectedItems();
 	for (int i = 0; i < indexList.size(); ++i)
 	{
-		this->takeItem(this->row(indexList.at(i)));
+		this->takeItem(this->row(indexList.at(i)));		
 	}
+	this->setCurrentRow(count()-1);
 }
 
 void FileDirList::ClearItems()
@@ -180,9 +181,47 @@ void FileDirList::keyPressEvent(QKeyEvent *event)
 		break;
 	case Qt::Key_Up:
 	{
-					 
-					   
+					   int nCurrentRow = currentRow();					   
+					   if (nCurrentRow != 0 &&
+						   nCurrentRow != -1)
+					   {
+						   int nPreRow = nCurrentRow - 1;
+						   QListWidgetItem * pCurrentItem = item(nCurrentRow);
+						   QListWidgetItem * pPreItem = item(nPreRow);
+						   QString strCurrent = pCurrentItem->text();
+						   QString strPre = pPreItem->text();
+
+						   insertItem(nPreRow, strCurrent);
+						   insertItem(nCurrentRow, strPre);
+						   
+						   takeItem(row(pCurrentItem));
+						   takeItem(row(pPreItem));
+
+						   setCurrentRow(nPreRow);
+					   }
 						
+	}break;
+	case Qt::Key_Down:
+	{
+						 int nCurrentRow = currentRow();
+						 if (nCurrentRow != count()-1 &&
+							 nCurrentRow != -1)
+						 {
+							 int nNextRow = nCurrentRow + 1;
+							 QListWidgetItem * pCurrentItem = item(nCurrentRow);
+							 QListWidgetItem * pNextItem = item(nNextRow);
+
+							 QString strCurrent = pCurrentItem->text();
+							 QString strNext = pNextItem->text();
+
+							 insertItem(nNextRow, strCurrent);
+							 insertItem(nCurrentRow, strNext);
+
+							 takeItem(row(pCurrentItem));
+							 takeItem(row(pNextItem));
+
+							 setCurrentRow(nNextRow);
+						 }
 	}break;
 	default:
 		break;
