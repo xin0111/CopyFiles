@@ -14,6 +14,8 @@ CopyFilesWindow::CopyFilesWindow(QWidget *parent)
 {
 	ui.setupUi(this);	
 	m_strTitle = this->windowTitle();
+	ui.tabWidget_rule->setAcceptDrops(true);
+	ui.tabWidget_rule->installEventFilter(this);
 	ui.progressBar->setVisible(false);
 	connect(CopyThread::getInstance(), SIGNAL(sig_copyFromItem(QString)), this, SLOT(on_copyFromItemTip(QString)));
 	connect(CopyThread::getInstance(), SIGNAL(sig_copyRuleCount(int)), this, SLOT(on_setMaxRange(int)));
@@ -269,5 +271,32 @@ void CopyFilesWindow::addNewPage()
 void CopyFilesWindow::on_pushButton_Help_clicked()
 {
 	QMessageBox::about(this, tr("Help"),
-		QString::fromLocal8Bit("特定正则使用规则:\n\t*.+ : 自动创建拷贝根目录；\n\t*.dll: *.文件后缀，查找根目录下所有匹配项；\n\t*.dll- : *.文件后缀-，只拷贝根目录下的匹配项。"));
+		QString::fromLocal8Bit("<p> 特定正则使用规则:</p>"
+		"<p>   + :  <b>（目录/*.+）或（文件+）或（*.后缀+） </b>自动创建拷贝根目录；</p >"
+		"<p>   - :  <b>（目录/*.-）或（文件-）或（*.后缀-） </b>   只拷贝根目录下的匹配项。</p>"
+		"<p>   > :  <b>（文件>新目录）或（目录/>新目录）</b> 创建拷贝新根目录；</p >"		
+		));
 }
+
+bool CopyFilesWindow::eventFilter(QObject *watched, QEvent *event)
+{
+	if (watched == ui.tabWidget_rule)
+	{
+		if (event->type() == QEvent::DragEnter)
+		{
+			event->accept();
+		}
+		if (event->type() == QEvent::DragMove)
+		{
+			int nIndex = ui.tabWidget_rule->tabBar()->tabAt(((QDragMoveEvent*)event)->pos());
+			if (nIndex != -1)
+			{
+				ui.tabWidget_rule->tabBar()->setCurrentIndex(nIndex);
+			}
+			event->accept();
+		}
+	}
+	return QMainWindow::eventFilter(watched, event);
+}
+
+
