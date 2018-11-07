@@ -28,9 +28,10 @@ public slots:
 public:
 	void importFromXml(QString filePath);
 	void exportToXml(QString filePath);
+protected:
+	bool eventFilter(QObject *watched, QEvent *event);
 private:
 	void addNewPage();	
-
 
 	Ui::CopyFilesClass ui;
 	int m_nStep;
