@@ -25,6 +25,7 @@ public slots:
 	void on_pushButton_import_clicked();	
 	void on_setMaxRange(int nMaxRange);
 	void on_pushButton_Help_clicked();
+
 public:
 	void importFromXml(QString filePath);
 	void exportToXml(QString filePath);
@@ -32,7 +33,7 @@ protected:
 	bool eventFilter(QObject *watched, QEvent *event);
 private:
 	void addNewPage();	
-
+	void registerApp();
 	Ui::CopyFilesClass ui;
 	int m_nStep;
 	int m_nMaxRange;	
