@@ -1,13 +1,20 @@
 #include "copyfiles.h"
 #include <QtWidgets/QApplication>
+#include <QCommandLineParser>
 
 int main(int argc, char *argv[])
 {
 	QApplication a(argc, argv);
-	CopyFilesWindow w;
-	if (argc == 2)
+	QCommandLineParser parser;
+	const QCommandLineOption fileOption(QStringLiteral("f"), 
+		"", QStringLiteral("filepath"));
+	parser.addOption(fileOption);
+	parser.process(a);
+	CopyFilesWindow w;	
+	if (parser.isSet(fileOption))
 	{
-		w.importFromXml(QString::fromLocal8Bit(argv[1]));
+		const QString filePath = parser.value(fileOption);
+		w.importFromXml(filePath);
 	}
 	w.show();
 	return a.exec();
