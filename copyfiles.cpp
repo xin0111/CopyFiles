@@ -128,8 +128,10 @@ void CopyFilesWindow::importFromXml(QString filePath)
 	}
 	file.close();
 
-	QDomElement root = doc.documentElement();
+	QDomElement root = doc.firstChildElement("Rule");	
 	QDomNodeList pages = root.childNodes();
+	if (pages.isEmpty()) return;
+	//
 	ui.tabWidget_rule->clear();
 	CopyPage * rulePage = NULL;
 	for (size_t i = 0; i < pages.size(); i++)
