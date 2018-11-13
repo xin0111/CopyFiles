@@ -316,12 +316,14 @@ void CopyFilesWindow::registerApp()
 	//file
 	QSettings regFile("HKEY_CLASSES_ROOT\\*\\shell\\CopyFiles", QSettings::NativeFormat);
 	regFile.setValue("icon", QCoreApplication::arguments()[0]); //设置注册表值
-	QSettings regFile2("HKEY_CLASSES_ROOT\\*\\shell\\CopyFiles\\command", QSettings::NativeFormat);
-	regFile2.setValue("Default", QCoreApplication::arguments()[0] + " -f " + "%1");
+	regFile.beginGroup("command");	
+	regFile.setValue("Default", QCoreApplication::arguments()[0] + " -f " + "%1");
+	regFile.endGroup();
 	//directory
 	QSettings regDirectory("HKEY_CLASSES_ROOT\\directory\\background\\shell\\CopyFiles", QSettings::NativeFormat);
 	regDirectory.setValue("icon", QCoreApplication::arguments()[0]);
-	QSettings regDirectory2("HKEY_CLASSES_ROOT\\directory\\background\\shell\\CopyFiles\\command", QSettings::NativeFormat);
-	regDirectory2.setValue("Default", QCoreApplication::arguments()[0]);
+	regDirectory.beginGroup("command");	
+	regDirectory.setValue("Default", QCoreApplication::arguments()[0]);
+	regDirectory.endGroup();
 
 }
