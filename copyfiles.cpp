@@ -6,8 +6,11 @@
 #include <QSet>
 #include <QProgressBar>
 #include <QFontMetrics>
+#include <QSettings>
 #include "Copythread.h"
 
+#define RUN_KEY "HKEY_CLASSES_ROOT\\*\\shell\\CopyFiles"
+#define RUN_KEY2 "HKEY_CLASSES_ROOT\\*\\shell\\CopyFiles\\command"
 
 CopyFilesWindow::CopyFilesWindow(QWidget *parent)
 : QMainWindow(parent), m_nStep(0)
@@ -20,6 +23,7 @@ CopyFilesWindow::CopyFilesWindow(QWidget *parent)
 	connect(CopyThread::getInstance(), SIGNAL(sig_copyFromItem(QString)), this, SLOT(on_copyFromItemTip(QString)));
 	connect(CopyThread::getInstance(), SIGNAL(sig_copyRuleCount(int)), this, SLOT(on_setMaxRange(int)));
 	connect(CopyThread::getInstance(), SIGNAL(sig_copyFinished(bool, QString)), this, SLOT(on_reset(bool, QString)));
+
 }
 
 CopyFilesWindow::~CopyFilesWindow()
@@ -149,6 +153,8 @@ void CopyFilesWindow::importFromXml(QString filePath)
 			rulePage->AddCopyToPath(toNodes.at(k).toElement().text());
 		}
 	}
+	QFileInfo fileInfo(filePath);
+	this->setWindowTitle(fileInfo.fileName() + " - " + m_strTitle);
 }
 
 void CopyFilesWindow::exportToXml(QString filePath)
@@ -202,6 +208,9 @@ void CopyFilesWindow::exportToXml(QString filePath)
 	doc.save(ts, 4, QDomNode::EncodingFromTextStream);
 	file.close();
 	tipMessage(QString::fromLocal8Bit("导出完成."));
+
+	QFileInfo fileInfo(filePath);
+	this->setWindowTitle(fileInfo.fileName() + " - " + m_strTitle);
 }
 
 
@@ -213,8 +222,6 @@ void CopyFilesWindow::on_pushButton_export_clicked()
 	if (!filePath.isEmpty())
 	{		
 		exportToXml(filePath);
-		QFileInfo fileInfo(filePath);
-		this->setWindowTitle(fileInfo.fileName() + " - " + m_strTitle);
 	}
 }
 
@@ -225,8 +232,6 @@ void CopyFilesWindow::on_pushButton_import_clicked()
 	if (!fileName.isEmpty())
 	{
 		importFromXml(fileName);
-		QFileInfo fileInfo(fileName);
-		this->setWindowTitle(fileInfo.fileName() + " - " + m_strTitle);
 	}
 }
 
@@ -270,12 +275,24 @@ void CopyFilesWindow::addNewPage()
 
 void CopyFilesWindow::on_pushButton_Help_clicked()
 {
-	QMessageBox::about(this, tr("Help"),
-		QString::fromLocal8Bit("<p> 特定正则使用规则:</p>"
-		"<p>   + :  <b>（目录/*.+）或（文件+）或（*.后缀+） </b>自动创建拷贝根目录；</p >"
-		"<p>   - :  <b>（目录/*.-）或（文件-）或（*.后缀-） </b>   只拷贝根目录下的匹配项。</p>"
-		"<p>   > :  <b>（文件>新目录）或（目录/>新目录）</b> 创建拷贝新根目录；</p >"		
+	QMessageBox msgBox;
+	msgBox.setInformativeText(QString::fromLocal8Bit("<p> 特定正则使用规则:</p>"
+		"<p>   + :  <b>（目录/*.+）或（文件+）或（*.后缀+）</b> 自动创建拷贝根目录；</p >"
+		"<p>   - :  <b>（目录/*.-）或（文件-）或（*.后缀-）</b>  只拷贝根目录下的匹配项。</p>"
+		"<p>   > :  <b>（目录/>新目录）或（文件>新目录）或（*.后缀>新目录）</b> 创建拷贝新根目录；</p >"
 		));
+	msgBox.setWindowIcon(this->windowIcon());
+	msgBox.setStandardButtons(QMessageBox::Ok);
+	msgBox.addButton(QStringLiteral("注册"), QMessageBox::AcceptRole);
+	msgBox.setDefaultButton(QMessageBox::Ok);
+	int ret = msgBox.exec();
+	switch (ret)
+	{
+	case QMessageBox::AcceptRole:
+		registerApp();
+	default:
+		break;
+	}
 }
 
 bool CopyFilesWindow::eventFilter(QObject *watched, QEvent *event)
@@ -299,4 +316,10 @@ bool CopyFilesWindow::eventFilter(QObject *watched, QEvent *event)
 	return QMainWindow::eventFilter(watched, event);
 }
 
-
+void CopyFilesWindow::registerApp()
+{
+	QSettings reg(RUN_KEY, QSettings::NativeFormat);
+	reg.setValue("icon", QCoreApplication::arguments()[0]); //设置注册表值
+	QSettings reg2(RUN_KEY2, QSettings::NativeFormat);
+	reg2.setValue("Default", QCoreApplication::arguments()[0] + " %1"); 
+}
