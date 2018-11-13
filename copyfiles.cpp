@@ -270,26 +270,24 @@ void CopyFilesWindow::addNewPage()
 	ui.tabWidget_rule->setCurrentIndex(addIndex);
 }
 
+#define  LocalString_CN(str) QString::fromLocal8Bit(str).toStdString().c_str()
 void CopyFilesWindow::on_pushButton_Help_clicked()
 {
+	static QString help = QString::fromLatin1("<h4>") + tr(LocalString_CN("特定正则使用规则\n")) + QString::fromLatin1("</h4>"
+		"<p>") + tr(LocalString_CN("+:")) + tr(LocalString_CN(" <b>（目录/*.+）或（文件+）或（*.后缀+）</b> 自动创建拷贝根目录")) + QString::fromLatin1("</p>"	
+		"<p>") + tr(LocalString_CN("-:")) + tr(LocalString_CN(" <b>（目录/*.-）或（文件-）或（*.后缀-）</b>  只拷贝根目录下的匹配项")) + QString::fromLatin1("</p>"
+		"<p>") + tr(LocalString_CN(">:")) + tr(LocalString_CN("<b>（目录/>新目录）或（文件>新目录）或（*.后缀>新目录）</b> 创建拷贝新根目录")) + QString::fromLatin1("</p>"
+		"<p>");
 	QMessageBox msgBox;
-	msgBox.setInformativeText(QString::fromLocal8Bit("<p> 特定正则使用规则:</p>"
-		"<p>   + :  <b>（目录/*.+）或（文件+）或（*.后缀+）</b> 自动创建拷贝根目录；</p >"
-		"<p>   - :  <b>（目录/*.-）或（文件-）或（*.后缀-）</b>  只拷贝根目录下的匹配项。</p>"
-		"<p>   > :  <b>（目录/>新目录）或（文件>新目录）或（*.后缀>新目录）</b> 创建拷贝新根目录；</p >"
-		));
+	msgBox.setText(help);
 	msgBox.setWindowIcon(this->windowIcon());
 	msgBox.setStandardButtons(QMessageBox::Ok);
 	msgBox.addButton(QStringLiteral("注册"), QMessageBox::AcceptRole);
-	msgBox.setDefaultButton(QMessageBox::Ok);
-	int ret = msgBox.exec();
-	switch (ret)
+	msgBox.setDefaultButton(QMessageBox::Ok);	
+	if (QMessageBox::AcceptRole == msgBox.exec())
 	{
-	case QMessageBox::AcceptRole:
 		registerApp();
-	default:
-		break;
-	}
+	}	
 }
 
 bool CopyFilesWindow::eventFilter(QObject *watched, QEvent *event)
