@@ -9,9 +9,6 @@
 #include <QSettings>
 #include "Copythread.h"
 
-#define RUN_KEY "HKEY_CLASSES_ROOT\\*\\shell\\CopyFiles"
-#define RUN_KEY2 "HKEY_CLASSES_ROOT\\*\\shell\\CopyFiles\\command"
-
 CopyFilesWindow::CopyFilesWindow(QWidget *parent)
 : QMainWindow(parent), m_nStep(0)
 {
@@ -318,8 +315,15 @@ bool CopyFilesWindow::eventFilter(QObject *watched, QEvent *event)
 
 void CopyFilesWindow::registerApp()
 {
-	QSettings reg(RUN_KEY, QSettings::NativeFormat);
-	reg.setValue("icon", QCoreApplication::arguments()[0]); //设置注册表值
-	QSettings reg2(RUN_KEY2, QSettings::NativeFormat);
-	reg2.setValue("Default", QCoreApplication::arguments()[0] + " %1"); 
+	//file
+	QSettings regFile("HKEY_CLASSES_ROOT\\*\\shell\\CopyFiles", QSettings::NativeFormat);
+	regFile.setValue("icon", QCoreApplication::arguments()[0]); //设置注册表值
+	QSettings regFile2("HKEY_CLASSES_ROOT\\*\\shell\\CopyFiles\\command", QSettings::NativeFormat);
+	regFile2.setValue("Default", QCoreApplication::arguments()[0] + " -f " + "%1");
+	//directory
+	QSettings regDirectory("HKEY_CLASSES_ROOT\\directory\\background\\shell\\CopyFiles", QSettings::NativeFormat);
+	regDirectory.setValue("icon", QCoreApplication::arguments()[0]);
+	QSettings regDirectory2("HKEY_CLASSES_ROOT\\directory\\background\\shell\\CopyFiles\\command", QSettings::NativeFormat);
+	regDirectory2.setValue("Default", QCoreApplication::arguments()[0]);
+
 }
