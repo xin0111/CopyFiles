@@ -74,6 +74,11 @@ bool CopyThread::copyFileToPath(QString sourceDir,
 	QDir createfile;
 	bool exist = createfile.exists(toDirFile);
 	if (exist){
+		QFileInfo toInfo(toDirFile);
+		if (toInfo.lastModified() == sourceInfo.lastModified())
+		{//未更新，不拷贝
+			return true;
+		}	
 		if (coverFileIfExist){
 			createfile.remove(toDirFile);
 		}
