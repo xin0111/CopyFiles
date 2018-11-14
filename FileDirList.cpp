@@ -163,10 +163,7 @@ void FileDirList::contextMenuEvent(QContextMenuEvent *event)
 QListWidgetItem * FileDirList::appendItem(QString filePath)
 {
 	QListWidgetItem *newItem = new QListWidgetItem(this);
-	newItem->setText(filePath);
-	//设置可编辑 
-	newItem->setFlags(newItem->flags() | Qt::ItemIsEditable);
-	//newItem->setSelected(true);
+	newItem->setText(filePath);	
 	this->insertItem(count(), newItem);		
 	return newItem;
 }
@@ -186,16 +183,14 @@ void FileDirList::keyPressEvent(QKeyEvent *event)
 						   nCurrentRow != -1)
 					   {
 						   int nPreRow = nCurrentRow - 1;
+						   
 						   QListWidgetItem * pCurrentItem = item(nCurrentRow);
 						   QListWidgetItem * pPreItem = item(nPreRow);
 						   QString strCurrent = pCurrentItem->text();
 						   QString strPre = pPreItem->text();
 
-						   insertItem(nPreRow, strCurrent);
-						   insertItem(nCurrentRow, strPre);
-						   
-						   takeItem(row(pCurrentItem));
-						   takeItem(row(pPreItem));
+						   pCurrentItem->setText(strPre);
+						   pPreItem->setText(strCurrent);
 
 						   setCurrentRow(nPreRow);
 					   }
@@ -208,17 +203,15 @@ void FileDirList::keyPressEvent(QKeyEvent *event)
 							 nCurrentRow != -1)
 						 {
 							 int nNextRow = nCurrentRow + 1;
+
 							 QListWidgetItem * pCurrentItem = item(nCurrentRow);
 							 QListWidgetItem * pNextItem = item(nNextRow);
 
 							 QString strCurrent = pCurrentItem->text();
 							 QString strNext = pNextItem->text();
 
-							 insertItem(nNextRow, strCurrent);
-							 insertItem(nCurrentRow, strNext);
-
-							 takeItem(row(pCurrentItem));
-							 takeItem(row(pNextItem));
+							 pCurrentItem->setText(strNext);
+							 pNextItem->setText(strCurrent);
 
 							 setCurrentRow(nNextRow);
 						 }
@@ -271,7 +264,11 @@ void FileDirList::closeEditor(QWidget *editor, QAbstractItemDelegate::EndEditHin
 bool FileDirList::isValidFilePath(QString filePath)
 {
 	QFileInfo fileInfo(filePath);
-	if (!fileInfo.isDir()){
+	if (!fileInfo.isDir() && 
+		(filePath.lastIndexOf("+") == filePath.length()-1 ||
+		filePath.lastIndexOf("-") == filePath.length()-1 ||
+		filePath.indexOf(">") != -1))
+	{
 		filePath.append("/../");		
 	}
 	return QFileInfo::exists(filePath);
