@@ -265,9 +265,10 @@ bool FileDirList::isValidFilePath(QString filePath)
 {
 	QFileInfo fileInfo(filePath);
 	if (!fileInfo.isDir() && 
-		(filePath.lastIndexOf("+") == filePath.length()-1 ||
-		filePath.lastIndexOf("-") == filePath.length()-1 ||
-		filePath.indexOf(">") != -1))
+		(filePath.indexOf("*") != -1 ||
+		filePath.indexOf(">") != -1 || 
+		filePath.lastIndexOf("+") == filePath.length() - 1 ||
+		filePath.lastIndexOf("-") == filePath.length() - 1))
 	{
 		filePath.append("/../");		
 	}
