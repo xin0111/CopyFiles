@@ -24,6 +24,7 @@ public:
 	void recordHistory(QString filePath);
 signals:
 	void sig_ItemDoubleClicked(QString);
+	void sig_fixed(bool bFixed);
 protected:
 	bool eventFilter(QObject *watched, QEvent *event);
     void leaveEvent(QEvent *event);
