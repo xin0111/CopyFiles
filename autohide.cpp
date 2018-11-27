@@ -16,7 +16,7 @@ QWidget(parent)
 	initUi();
     m_nParentWidth = parent->width();
 	parent->installEventFilter(this);
-	m_enDriection = Up;
+	m_enDriection = Left;
 	m_borderOffset = 18;
 	m_nAnimaDuration = 300;
 	displayHistory();
@@ -235,7 +235,7 @@ void AutoHide::initUi()
 	horizontalLayout->addItem(horizontalSpacerRight);
 	verticalLayout->addLayout(horizontalLayout);
 
-	connect(listWidget, &QListWidget::itemDoubleClicked, [=](QListWidgetItem *item){
+	connect(listWidget, &QListWidget::itemClicked, [=](QListWidgetItem *item){
 		sig_ItemDoubleClicked(item->text());
 		if (m_isAutoHide)
 		{
@@ -244,5 +244,6 @@ void AutoHide::initUi()
 	});
 	connect(checkBox, &QCheckBox::stateChanged, [=](int state){
 		m_isAutoHide = !state;
+		sig_fixed(state);
 	});
 }
