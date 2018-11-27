@@ -5,6 +5,7 @@
 #include "ui_copyfiles.h"
 
 class QProgressBar;
+class AutoHide;
 class CopyFilesWindow : public QMainWindow
 {
 	Q_OBJECT
@@ -27,7 +28,7 @@ public slots:
 	void on_pushButton_Help_clicked();
 
 public:
-	void importFromXml(QString filePath);
+	void importFromXml(QString filePath,bool fromHistory=false);
 	void exportToXml(QString filePath);
 protected:
 	bool eventFilter(QObject *watched, QEvent *event);
@@ -38,6 +39,7 @@ private:
 	int m_nStep;
 	int m_nMaxRange;	
 	QString m_strTitle;
+	AutoHide* m_autoHide;
 };
 
 #endif // COPYFILES_H
