@@ -17,6 +17,10 @@ CopyFilesWindow::CopyFilesWindow(QWidget *parent)
 	ui.setupUi(this);	
 	m_autoHide = new AutoHide(this);
 	m_strTitle = this->windowTitle();
+	ui.dockWidget->setVisible(false);	
+	ui.dockWidget->setWindowTitle(QString::fromLocal8Bit("历史记录"));
+	ui.dockWidget->setFeatures(QDockWidget::NoDockWidgetFeatures);
+	ui.dockWidget->setAllowedAreas(Qt::LeftDockWidgetArea);
 	ui.tabWidget_rule->setAcceptDrops(true);
 	ui.tabWidget_rule->installEventFilter(this);
 	ui.progressBar->setVisible(false);
@@ -35,6 +39,19 @@ CopyFilesWindow::CopyFilesWindow(QWidget *parent)
 		{
 			importFromXml(filePath,true);
 		}
+	});
+	connect(m_autoHide, &AutoHide::sig_fixed, [=](bool bFixed){		
+		if (bFixed)
+		{
+			ui.dockWidget->setWidget(m_autoHide);			
+			ui.dockWidget->show();
+		}
+		else
+		{		
+			m_autoHide->setParent(this);
+			m_autoHide->show();
+			ui.dockWidget->hide();
+		}		
 	});
 }
 
