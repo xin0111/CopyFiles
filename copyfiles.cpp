@@ -8,11 +8,14 @@
 #include <QFontMetrics>
 #include <QSettings>
 #include "Copythread.h"
+#include "AutoHide.h"
+
 
 CopyFilesWindow::CopyFilesWindow(QWidget *parent)
 : QMainWindow(parent), m_nStep(0)
 {
 	ui.setupUi(this);	
+	m_autoHide = new AutoHide(this);
 	m_strTitle = this->windowTitle();
 	ui.tabWidget_rule->setAcceptDrops(true);
 	ui.tabWidget_rule->installEventFilter(this);
@@ -20,7 +23,19 @@ CopyFilesWindow::CopyFilesWindow(QWidget *parent)
 	connect(CopyThread::getInstance(), SIGNAL(sig_copyFromItem(QString)), this, SLOT(on_copyFromItemTip(QString)));
 	connect(CopyThread::getInstance(), SIGNAL(sig_copyRuleCount(int)), this, SLOT(on_setMaxRange(int)));
 	connect(CopyThread::getInstance(), SIGNAL(sig_copyFinished(bool, QString)), this, SLOT(on_reset(bool, QString)));
-
+	//history
+	connect(m_autoHide, &AutoHide::sig_ItemDoubleClicked, [=](QString filePath)
+	{
+		QFileInfo fileInfo(filePath);
+		if (!fileInfo.isFile())
+		{
+			tipMessage(QString::fromLocal8Bit("未找到文件：").append(filePath));
+		}
+		else
+		{
+			importFromXml(filePath,true);
+		}
+	});
 }
 
 CopyFilesWindow::~CopyFilesWindow()
@@ -96,9 +111,8 @@ void CopyFilesWindow::on_setMaxRange(int nMaxRange)
 void CopyFilesWindow::on_copyFromItemTip(QString strItem)
 {
 	ui.progressBar->setValue(m_nStep);
-
-	QFont ft;
-	QFontMetrics fm(ft);
+	
+	QFontMetrics fm(this->font());
 	strItem = fm.elidedText(strItem, Qt::ElideMiddle, ui.label_progress->width());
 	ui.label_progress->setText(strItem);
 	m_nStep += 1;
@@ -116,7 +130,7 @@ void CopyFilesWindow::on_reset(bool bSuccessed, QString strMsg)
 		QString::fromLocal8Bit("复制终止."));
 }
 
-void CopyFilesWindow::importFromXml(QString filePath)
+void CopyFilesWindow::importFromXml(QString filePath,bool fromHistory /*= false*/)
 {
 	QDomDocument doc;
 	QFile file(filePath);
@@ -152,6 +166,10 @@ void CopyFilesWindow::importFromXml(QString filePath)
 			rulePage->AddCopyToPath(toNodes.at(k).toElement().text());
 		}
 	}
+	if (!fromHistory)
+	{
+		m_autoHide->recordHistory(filePath);
+	}	
 	QFileInfo fileInfo(filePath);
 	this->setWindowTitle(fileInfo.fileName() + " - " + m_strTitle);
 }
@@ -211,8 +229,6 @@ void CopyFilesWindow::exportToXml(QString filePath)
 	QFileInfo fileInfo(filePath);
 	this->setWindowTitle(fileInfo.fileName() + " - " + m_strTitle);
 }
-
-
 
 void CopyFilesWindow::on_pushButton_export_clicked()
 {
@@ -276,8 +292,8 @@ void CopyFilesWindow::addNewPage()
 void CopyFilesWindow::on_pushButton_Help_clicked()
 {
 	static QString help = QString::fromLatin1("<h4>") + tr(LocalString_CN("特定正则使用规则\n")) + QString::fromLatin1("</h4>"
-		"<p>") + tr(LocalString_CN("+:")) + tr(LocalString_CN(" <b>（目录/*.+）或（文件+）或（*.后缀+）</b> 自动创建拷贝根目录")) + QString::fromLatin1("</p>"	
-		"<p>") + tr(LocalString_CN("-:")) + tr(LocalString_CN(" <b>（目录/*.-）或（文件-）或（*.后缀-）</b>  只拷贝根目录下的匹配项")) + QString::fromLatin1("</p>"
+		"<p>") + tr(LocalString_CN("+:")) + tr(LocalString_CN("<b>（目录/*.+）或（文件+）或（*.后缀+）</b> 自动创建拷贝根目录")) + QString::fromLatin1("</p>"	
+		"<p>") + tr(LocalString_CN("-:")) + tr(LocalString_CN("<b>（目录/*.-）或（文件-）或（*.后缀-）</b>  只拷贝根目录下的匹配项")) + QString::fromLatin1("</p>"
 		"<p>") + tr(LocalString_CN(">:")) + tr(LocalString_CN("<b>（目录/>新目录）或（文件>新目录）或（*.后缀>新目录）</b> 创建拷贝新根目录")) + QString::fromLatin1("</p>"
 		"<p>");
 	QMessageBox msgBox;
@@ -327,5 +343,4 @@ void CopyFilesWindow::registerApp()
 	regDirectory.beginGroup("command");	
 	regDirectory.setValue("Default", QCoreApplication::arguments()[0]);
 	regDirectory.endGroup();
-
 }
