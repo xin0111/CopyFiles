@@ -34,6 +34,7 @@ protected:
 	bool eventFilter(QObject *watched, QEvent *event);
 private:
 	void addNewPage();	
+	void resetPage();
 	void registerApp();
 	Ui::CopyFilesClass ui;
 	int m_nStep;

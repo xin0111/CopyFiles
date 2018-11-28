@@ -4,6 +4,7 @@
 #include <QMessageBox>
 #include <QDir>
 #include <QDebug>
+#include <QDateTime>
 
 CopyThread* CopyThread::getInstance()
 {
@@ -35,14 +36,14 @@ void CopyThread::run()
 			i.next();
 			strCopyFrom = i.key();
 			copyToList = i.value();
-			//æŸ¥æ‰¾è§„åˆ™
+			//²éÕÒ¹æÔò
 			AddFileRules(strCopyFrom, copyToList);
 			if (m_hasError)	break;
 		}
 		if (!m_hasError)
 		{
 			sig_copyRuleCount(m_fileRules.size());
-			//æ‹·è´æ–‡ä»¶
+			//¿½±´ÎÄ¼ş
 			for each (CopyRuleInfo var in m_fileRules)
 			{
 				sig_copyFromItem(var.strFrom_);
@@ -55,7 +56,7 @@ void CopyThread::run()
 	m_hasError = false;
 }
 
-//æ‹·è´æ–‡ä»¶ï¼š
+//¿½±´ÎÄ¼ş£º
 bool CopyThread::copyFileToPath(QString sourceDir,
 		QString toDir, bool coverFileIfExist)
 {
@@ -68,7 +69,7 @@ bool CopyThread::copyFileToPath(QString sourceDir,
 		return false;
 	}
 	QFileInfo sourceInfo(sourceDir);	
-	QString toDirFile = toDir;
+	QString toDirFile = toDir;	
 	toDirFile.append("/");
 	toDirFile.append(sourceInfo.fileName());
 	QDir createfile;
@@ -76,7 +77,7 @@ bool CopyThread::copyFileToPath(QString sourceDir,
 	if (exist){
 		QFileInfo toInfo(toDirFile);
 		if (toInfo.lastModified() == sourceInfo.lastModified())
-		{//æœªæ›´æ–°ï¼Œä¸æ‹·è´
+		{//Î´¸üĞÂ£¬²»¿½±´
 			return true;
 		}	
 		if (coverFileIfExist){
@@ -114,7 +115,7 @@ bool CopyThread::copyDirectoryRules(const QString &fromDir, const QString &toDir
 
 	QDir targetDir(newToDir);
 
-	if (!targetDir.exists()){    /**< å¦‚æœç›®æ ‡ç›®å½•ä¸å­˜åœ¨ï¼Œåˆ™è¿›è¡Œåˆ›å»º */
+	if (!targetDir.exists()){    /**< Èç¹ûÄ¿±êÄ¿Â¼²»´æÔÚ£¬Ôò½øĞĞ´´½¨ */
 		if (!targetDir.mkpath(targetDir.absolutePath()))
 		{
 			setErrorString(UNABLE_CREATE, targetDir.absolutePath());
@@ -126,7 +127,7 @@ bool CopyThread::copyDirectoryRules(const QString &fromDir, const QString &toDir
 		if (fileInfo.fileName() == "." || fileInfo.fileName() == "..")
 			continue;
 		qDebug() << fileInfo.filePath();
-		if (fileInfo.isDir()){    /**< å½“ä¸ºç›®å½•æ—¶ï¼Œé€’å½’çš„è¿›è¡Œcopy */		
+		if (fileInfo.isDir()){    /**< µ±ÎªÄ¿Â¼Ê±£¬µİ¹éµÄ½øĞĞcopy */		
 			if (!findChildDir)
 				continue;
 			if (!copyDirectoryRules(fileInfo.filePath(),
@@ -134,12 +135,12 @@ bool CopyThread::copyDirectoryRules(const QString &fromDir, const QString &toDir
 				return false;
 		}
 		else{
-			//æ­£åˆ™åŒ¹é…
+			//ÕıÔòÆ¥Åä
 			if (!m_regFile.isEmpty() && (
 				!m_regFile.exactMatch(fileInfo.filePath())))
 				continue;
 
-			//å­˜å‚¨è§„åˆ™
+			//´æ´¢¹æÔò
 			m_fileRules.push_back(CopyRuleInfo(fileInfo.filePath(), newToDir));
 		}
 	}
@@ -153,6 +154,10 @@ void CopyThread::AddFileHash(QString strFrom, QStringList listTo)
 
 void CopyThread::AddFileRules(QString strFrom, QStringList listTo)
 {
+	if (QDir::isRelativePath(strFrom))
+	{//Ïà¶ÔÂ·¾¶ ´¦Àí 
+		strFrom = m_ruleFilePath + strFrom;
+	}	
 	QFileInfo fromFileInfo(strFrom);
 	
 	for (size_t i = 0; i < listTo.size(); i++)
@@ -166,18 +171,18 @@ void CopyThread::AddFileRules(QString strFrom, QStringList listTo)
 		qDebug() << strReg;
 		if (strReg.indexOf("*") != -1||
 			strReg.indexOf(">") != -1)
-		{//å­˜åœ¨æ­£åˆ™				
+		{//´æÔÚÕıÔò				
 			if (strReg.split("-").size() >= 2)
-			{//æ­£åˆ™æ˜¯å¦åŒ¹é…å­ç›®å½•
+			{//ÕıÔòÊÇ·ñÆ¥Åä×ÓÄ¿Â¼
 				bFindChirdDir = false;
 				strReg = strReg.split("-")[0];
 			}
 			else if (strReg.split("+").size() >= 2)
-			{//æ˜¯å¦åˆ›å»ºFromæ ¹ç›®å½•
+			{//ÊÇ·ñ´´½¨From¸ùÄ¿Â¼
 				bAddRoot = true;
 			}
 			else if (strReg.split(">").size() >= 2)
-			{//åˆ›å»º æ–°æ ¹ç›®å½•
+			{//´´½¨ ĞÂ¸ùÄ¿Â¼
 				bAddRoot = true;
 				QStringList findList = QString(strReg).split(">");
 				if (findList.size() >= 2)
@@ -200,7 +205,7 @@ void CopyThread::AddFileRules(QString strFrom, QStringList listTo)
 		if (m_hasError)	break;
 		
 		if (fromFileInfo.isFile())
-		{//å­˜å‚¨è§„åˆ™
+		{//´æ´¢¹æÔò
 			m_fileRules.push_back(CopyRuleInfo(strFrom, listTo.at(i)));
 		}
 		else if (fromFileInfo.isDir())
@@ -227,19 +232,19 @@ void CopyThread::setErrorString(CopyError errorType, QString filePath)
 	switch (errorType)
 	{
 	case CopyThread::NON_EXISTENT:
-		m_strError = QString::fromLocal8Bit("ä¸å­˜åœ¨æ–‡ä»¶(å¤¹)\n");
+		m_strError = QString::fromLocal8Bit("²»´æÔÚÎÄ¼ş(¼Ğ)\n");
 		break;
 	case CopyThread::UNABLE_CREATE:
-		m_strError = QString::fromLocal8Bit("æ— æ³•åˆ›å»ºæ–‡ä»¶å¤¹\n");
+		m_strError = QString::fromLocal8Bit("ÎŞ·¨´´½¨ÎÄ¼ş¼Ğ\n");
 		break;
 	case CopyThread::COPY_FAILED:
-		m_strError = QString::fromLocal8Bit("å¤åˆ¶æ–‡ä»¶å¤±è´¥\n");
+		m_strError = QString::fromLocal8Bit("¸´ÖÆÎÄ¼şÊ§°Ü\n");
 		break;
 	case CopyThread::EMPTY_RULE:
-		m_strError = QString::fromLocal8Bit("ä¸å­˜åœ¨æ­£ç¡®å¤åˆ¶è§„åˆ™!\n");
+		m_strError = QString::fromLocal8Bit("²»´æÔÚÕıÈ·¸´ÖÆ¹æÔò!\n");
 		break;
 	case CopyThread::ERROR_REGEX:
-		m_strError = QString::fromLocal8Bit("é”™è¯¯è§„åˆ™!\n");
+		m_strError = QString::fromLocal8Bit("´íÎó¹æÔò!\n");
 		break;
 	default:
 		break;

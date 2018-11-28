@@ -31,6 +31,7 @@ protected:
     void enterEvent(QEvent *event);	
 	void keyPressEvent(QKeyEvent *event);
 private:
+	void addListItem(QString filePath);
     void hideWidget();
     void showWidget();
 	void displayHistory();
@@ -39,11 +40,11 @@ private:
 private:
 	bool m_isAutoHide{ true };
     Direction m_enDriection;
-	//çˆ¶çª—ä½“çš„å®½åº¦
+	//¸¸´°ÌåµÄ¿í¶È
 	int m_nParentWidth;
-	//è¾¹ç•Œ
+	//±ß½ç
 	int m_borderOffset;
-	//åŠ¨ç”»æ—¶é•¿
+	//¶¯»­Ê±³¤
 	int m_nAnimaDuration;	
 private://ui
 	QVBoxLayout *verticalLayout;

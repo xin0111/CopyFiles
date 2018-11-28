@@ -24,7 +24,7 @@ public:
 	void setBuddyListWidget(QListWidget * pBuddyList);	
 	bool undoRepeat(QString fileName, bool andBuddy);
 	QListWidgetItem * appendItem(QString filePath);
-	bool isValidFilePath(QString filePath);
+	bool isValidFilePath(QString& filePath);
 protected:	
 	void dragEnterEvent(QDragEnterEvent *event);
 	void dragMoveEvent(QDragMoveEvent *e);

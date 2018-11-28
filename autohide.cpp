@@ -1,4 +1,4 @@
-#include "autohide.h"
+﻿#include "autohide.h"
 #include <QPoint>
 #include <QDebug>
 #include <QSettings>
@@ -52,9 +52,7 @@ void AutoHide::recordHistory(QString filePath)
 	settings.setValue(AUTOHIDE_DOCUMENTCOUNT, nCount);
 	settings.endGroup();
 	//显示
-	QListWidgetItem* item = new QListWidgetItem(filePath);
-	item->setSizeHint(QSize(this->width(), 100));
-	listWidget->addItem(item);
+	addListItem(filePath);
 }
 
 bool AutoHide::eventFilter(QObject *watched, QEvent *event)
@@ -131,6 +129,14 @@ void AutoHide::showWidget()
     animation->start();
 }
 
+void AutoHide::addListItem(QString filePath)
+{
+	QListWidgetItem* item = new QListWidgetItem(filePath);
+	item->setSizeHint(QSize(this->width(), 100));
+	item->setToolTip(filePath);
+	listWidget->addItem(item);
+}
+
 void AutoHide::hideWidget()
 {
     QPropertyAnimation *animation = new QPropertyAnimation(this, "geometry");
@@ -164,9 +170,7 @@ void AutoHide::displayHistory()
 		if (var == AUTOHIDE_DOCUMENTCOUNT)
 			continue;
 		QString strItem = settings.value(var).toString();
-		QListWidgetItem* item = new QListWidgetItem(strItem);
-		item->setSizeHint(QSize(this->width(), 100));				
-		listWidget->addItem(item);
+		addListItem(strItem);
 	}
 	settings.endGroup();
 }
@@ -222,9 +226,9 @@ void AutoHide::initUi()
 	listWidget = new QListWidget(this);
 	//多选
 	listWidget->setSelectionMode(QListWidget::ExtendedSelection);	
+	//listWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	verticalLayout->addWidget(listWidget);
 	horizontalLayout = new QHBoxLayout();
-	horizontalLayout->setObjectName(QStringLiteral("horizontalLayout"));
 	horizontalSpacerLeft = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
 	horizontalLayout->addItem(horizontalSpacerLeft);
@@ -245,5 +249,5 @@ void AutoHide::initUi()
 	connect(checkBox, &QCheckBox::stateChanged, [=](int state){
 		m_isAutoHide = !state;
 		sig_fixed(state);
-	});
+	});	
 }

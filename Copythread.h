@@ -59,6 +59,7 @@ public:
 	bool   m_hasError;
 	QString m_strError;
 	QRegExp m_regFile;
+	QString m_ruleFilePath;
 };
 
 

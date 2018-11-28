@@ -3,7 +3,8 @@
 #include <QMimeData>
 #include <QFileInfo>
 #include <QDesktopServices>
-
+#include <QDir>
+#include "Copythread.h"
 
 FileDirList::FileDirList(QWidget *parent)
 : QListWidget(parent)
@@ -12,11 +13,11 @@ FileDirList::FileDirList(QWidget *parent)
 	this->setDragEnabled(true);
 	this->setSelectionMode(QListWidget::ExtendedSelection);
 	this->setContextMenuPolicy(Qt::DefaultContextMenu);	
-	m_pDeleteItemAction = new QAction(QString::fromLocal8Bit("åˆ é™¤"),this);
+	m_pDeleteItemAction = new QAction(QString::fromLocal8Bit("É¾³ı"),this);
 	connect(m_pDeleteItemAction, SIGNAL(triggered()), this, SLOT(RemoveSelectItem()));
-	m_pClearAction = new QAction(QString::fromLocal8Bit("æ¸…ç©º"),this);
+	m_pClearAction = new QAction(QString::fromLocal8Bit("Çå¿Õ"),this);
 	connect(m_pClearAction, SIGNAL(triggered()), this, SLOT(ClearItems()));
-	m_pOpenAction = new QAction(QString::fromLocal8Bit("æ‰“å¼€æ–‡ä»¶å¤¹"),this);	
+	m_pOpenAction = new QAction(QString::fromLocal8Bit("´ò¿ªÎÄ¼ş¼Ğ"),this);	
 	connect(m_pOpenAction, &QAction::triggered, this, &FileDirList::OpenDir);
 	m_pMenu = new QMenu(this);
 	m_pMenu->addAction(m_pDeleteItemAction);
@@ -37,7 +38,7 @@ void FileDirList::setBuddyListWidget(QListWidget * pBuddyList)
 
 bool FileDirList::undoRepeat(QString fileName, bool andBuddy)
 {
-	//é˜²æ­¢é‡å¤æ·»åŠ 
+	//·ÀÖ¹ÖØ¸´Ìí¼Ó
 	QString strShow;
 	bool bRet = false;
 	for (int i = 0; i < this->count(); ++i)
@@ -89,12 +90,12 @@ void FileDirList::dragMoveEvent(QDragMoveEvent *e)
 void FileDirList::dropEvent(QDropEvent *event)
 {
 	if (event->mimeData()->hasFormat("text/uri-list"))
-	{//èµ„æºæ–‡ä»¶æ‹–æ‹½
+	{//×ÊÔ´ÎÄ¼şÍÏ×§
 		QList<QUrl> urls = event->mimeData()->urls();
 		for (int i = 0; i < urls.size(); i++)
 		{
 			QString fileName = urls.at(i).toLocalFile();
-			//é˜²æ­¢é‡å¤æ·»åŠ 
+			//·ÀÖ¹ÖØ¸´Ìí¼Ó
 			if (typeCheck(fileName) && !undoRepeat(fileName, true))
 			{
 				appendItem(fileName);
@@ -102,7 +103,7 @@ void FileDirList::dropEvent(QDropEvent *event)
 		}
 		return;
 	}
-	//å†…éƒ¨æ‹–æ‹½
+	//ÄÚ²¿ÍÏ×§
 	FileDirList* source = qobject_cast<FileDirList*>(event->source());
 
 	if (!source || source == this) return;
@@ -112,11 +113,11 @@ void FileDirList::dropEvent(QDropEvent *event)
 	{
 		QListWidgetItem* pItem = items.at(i);
 		QString filePath = pItem->text();
-		//é˜²æ­¢é‡å¤æ·»åŠ 
+		//·ÀÖ¹ÖØ¸´Ìí¼Ó
 		if (typeCheck(filePath) && !undoRepeat(filePath, source != m_pBuddyList))
 		{
 			appendItem(filePath);
-			//åˆ é™¤æºItem		
+			//É¾³ıÔ´Item		
 			source->takeItem(source->row(pItem));
 		}
 	}
@@ -140,11 +141,10 @@ void FileDirList::ClearItems()
 void FileDirList::OpenDir()
 {	
 	QString filePath = currentItem()->text();
-	QFileInfo fileInfo(filePath);
-	if (!fileInfo.isDir()){
-		filePath.append("/../");
+	if (isValidFilePath(filePath))
+	{
+		QDesktopServices::openUrl(QUrl::fromLocalFile(filePath));
 	}
-	QDesktopServices::openUrl(QUrl::fromLocalFile(filePath));
 }
 
 
@@ -261,16 +261,20 @@ void FileDirList::closeEditor(QWidget *editor, QAbstractItemDelegate::EndEditHin
 }
 
 
-bool FileDirList::isValidFilePath(QString filePath)
+bool FileDirList::isValidFilePath(QString& filePath)
 {
+	if (QDir::isRelativePath(filePath))
+	{//Ïà¶ÔÂ·¾¶ ´¦Àí 
+		filePath = CopyThread::getInstance()->m_ruleFilePath + filePath;
+	}
 	QFileInfo fileInfo(filePath);
-	if (!fileInfo.isDir() && 
+	if (!fileInfo.isDir() &&
 		(filePath.indexOf("*") != -1 ||
-		filePath.indexOf(">") != -1 || 
+		filePath.indexOf(">") != -1 ||
 		filePath.lastIndexOf("+") == filePath.length() - 1 ||
 		filePath.lastIndexOf("-") == filePath.length() - 1))
 	{
-		filePath.append("/../");		
+		filePath.append("/../");
 	}
 	return QFileInfo::exists(filePath);
 }
