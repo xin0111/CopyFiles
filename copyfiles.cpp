@@ -149,14 +149,7 @@ void CopyFilesWindow::on_reset(bool bSuccessed, QString strMsg)
 void CopyFilesWindow::importFromXml(QString filePath,bool fromHistory /*= false*/)
 {
 	QDomDocument doc;
-	QFile file(filePath);
-	if (!file.open(QIODevice::ReadOnly))
-		return;
-	if (!doc.setContent(&file)) {
-		file.close();
-		return;
-	}
-	file.close();
+	CTools::openXml(doc, filePath);
 
 	QDomElement root = doc.firstChildElement("Rule");	
 	QDomNodeList pages = root.childNodes();
@@ -236,13 +229,7 @@ void CopyFilesWindow::exportToXml(QString filePath)
 	}
 	doc.appendChild(root);
 
-	QFile file(filePath);
-	if (!file.open(QIODevice::WriteOnly|QFile::Truncate))
-		return;
-	QTextStream ts(&file);
-	ts.reset();
-	doc.save(ts, 4, QDomNode::EncodingFromTextStream);
-	file.close();
+	CTools::saveXml(doc, filePath);
 	tipMessage(QString::fromLocal8Bit("导出完成."));
 
 	QFileInfo fileInfo(filePath);

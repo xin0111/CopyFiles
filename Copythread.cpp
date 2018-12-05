@@ -14,7 +14,7 @@ CopyThread* CopyThread::getInstance()
 
 CopyThread::CopyThread()
 {
-	m_hasError = false;
+	m_strError.clear();
 }
 
 CopyThread::~CopyThread()
@@ -24,8 +24,9 @@ CopyThread::~CopyThread()
 
 void CopyThread::run()
 {
+	m_strError.clear();
 	if (m_fileHash.isEmpty())	{
-		setErrorString(EMPTY_RULE, "");
+		setErrorString(CTools::EMPTY_RULE, "");
 	}
 	else
 	{
@@ -38,66 +39,21 @@ void CopyThread::run()
 			copyToList = i.value();
 			//查找规则
 			AddFileRules(strCopyFrom, copyToList);
-			if (m_hasError)	break;
+			if (hasCopyError())	break;
 		}
-		if (!m_hasError)
+		if (!hasCopyError())
 		{
 			sig_copyRuleCount(m_fileRules.size());
 			//拷贝文件
-			for each (CopyRuleInfo var in m_fileRules)
+			for each (QStringList var in m_fileRules)
 			{
-				sig_copyFromItem(var.strFrom_);
-				copyFileToPath(var.strFrom_, var.strTo_, true);
-				if (m_hasError)	break;
+				sig_copyFromItem(var.at(0));
+				CTools::copyFileToPath(var.at(0), var.at(1),m_strError, true);				
+				if (hasCopyError())	break;
 			}
 		}
 	}	
-	sig_copyFinished(!m_hasError, m_strError);
-	m_hasError = false;
-}
-
-//拷贝文件：
-bool CopyThread::copyFileToPath(QString sourceDir,
-		QString toDir, bool coverFileIfExist)
-{
-	toDir.replace("\\", "/");
-	if (sourceDir == toDir){
-		return true;
-	}
-	if (!QFile::exists(sourceDir)){
-		setErrorString(NON_EXISTENT, sourceDir);
-		return false;
-	}
-	QFileInfo sourceInfo(sourceDir);	
-	QString toDirFile = toDir;	
-	toDirFile.append("/");
-	toDirFile.append(sourceInfo.fileName());
-	QDir createfile;
-	bool exist = createfile.exists(toDirFile);
-	if (exist){
-		QFileInfo toInfo(toDirFile);
-		if (toInfo.lastModified() == sourceInfo.lastModified())
-		{//未更新，不拷贝
-			return true;
-		}	
-		if (coverFileIfExist){
-			createfile.remove(toDirFile);
-		}
-	}
-	else
-	{			
-		if (!createfile.mkpath(toDir))
-		{
-			setErrorString(UNABLE_CREATE, toDir);
-			return false;
-		}			
-	}
-	if (!QFile::copy(sourceDir, toDirFile))
-	{
-		setErrorString(COPY_FAILED, sourceDir);
-		return false;
-	}
-	return true;
+	sig_copyFinished(!hasCopyError(), m_strError);
 }
 
 bool CopyThread::copyDirectoryRules(const QString &fromDir, const QString &toDir,
@@ -105,7 +61,7 @@ bool CopyThread::copyDirectoryRules(const QString &fromDir, const QString &toDir
 {
 	QDir sourceDir(fromDir);
 	if (!sourceDir.exists()){
-		setErrorString(NON_EXISTENT, fromDir);
+		setErrorString(CTools::NON_EXISTENT, fromDir);
 		return false;
 	}
 	QString newToDir = toDir;
@@ -118,7 +74,7 @@ bool CopyThread::copyDirectoryRules(const QString &fromDir, const QString &toDir
 	if (!targetDir.exists()){    /**< 如果目标目录不存在，则进行创建 */
 		if (!targetDir.mkpath(targetDir.absolutePath()))
 		{
-			setErrorString(UNABLE_CREATE, targetDir.absolutePath());
+			setErrorString(CTools::UNABLE_CREATE, targetDir.absolutePath());
 			return false;
 		}
 	}
@@ -141,7 +97,7 @@ bool CopyThread::copyDirectoryRules(const QString &fromDir, const QString &toDir
 				continue;
 
 			//存储规则
-			m_fileRules.push_back(CopyRuleInfo(fileInfo.filePath(), newToDir));
+			m_fileRules.push_back(QStringList()<<fileInfo.filePath()<<newToDir);
 		}
 	}
 	return true;
@@ -196,17 +152,17 @@ void CopyThread::AddFileRules(QString strFrom, QStringList listTo)
 				m_regFile = QRegExp(".*(\|/)" + strReg);
 			}			
 			if (!m_regFile.isValid())
-				setErrorString(ERROR_REGEX, strFrom);
+				setErrorString(CTools::ERROR_REGEX, strFrom);
 
 			strFrom = fromFileInfo.dir().path();
 			fromFileInfo.setFile(strFrom);
 		}
 		
-		if (m_hasError)	break;
+		if (hasCopyError())	break;
 		
 		if (fromFileInfo.isFile())
 		{//存储规则
-			m_fileRules.push_back(CopyRuleInfo(strFrom, listTo.at(i)));
+			m_fileRules.push_back(QStringList()<<strFrom <<listTo.at(i));
 		}
 		else if (fromFileInfo.isDir())
 		{
@@ -214,9 +170,9 @@ void CopyThread::AddFileRules(QString strFrom, QStringList listTo)
 		}
 		else
 		{
-			setErrorString(NON_EXISTENT, strFrom);
+			setErrorString(CTools::NON_EXISTENT, strFrom);
 		}
-		if (m_hasError)	break;
+		if (hasCopyError())	break;
 	}
 }
 
@@ -224,31 +180,15 @@ void CopyThread::ResetFileRules()
 {
 	m_fileHash.clear();
 	m_fileRules.clear();
+	m_strError.clear();
 }
 
-void CopyThread::setErrorString(CopyError errorType, QString filePath)
+void CopyThread::setErrorString(CTools::emCopyError errorType, QString filePath)
 {
-	m_strError.clear();
-	switch (errorType)
-	{
-	case CopyThread::NON_EXISTENT:
-		m_strError = QString::fromLocal8Bit("不存在文件(夹)\n");
-		break;
-	case CopyThread::UNABLE_CREATE:
-		m_strError = QString::fromLocal8Bit("无法创建文件夹\n");
-		break;
-	case CopyThread::COPY_FAILED:
-		m_strError = QString::fromLocal8Bit("复制文件失败\n");
-		break;
-	case CopyThread::EMPTY_RULE:
-		m_strError = QString::fromLocal8Bit("不存在正确复制规则!\n");
-		break;
-	case CopyThread::ERROR_REGEX:
-		m_strError = QString::fromLocal8Bit("错误规则!\n");
-		break;
-	default:
-		break;
-	}	
-	m_strError.append(filePath);
-	m_hasError = true;
+	m_strError = CTools::copyErrorMsg(errorType, filePath);
+}
+
+bool CopyThread::hasCopyError()
+{
+	return !m_strError.isEmpty();
 }

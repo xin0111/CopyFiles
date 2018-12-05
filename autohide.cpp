@@ -1,24 +1,105 @@
 ﻿#include "autohide.h"
+#include <QtWidgets/QListWidget>
+#include <QtWidgets/QVBoxLayout>
+#include <QCheckBox>
+#include <QLabel>
 #include <QPoint>
 #include <QDebug>
 #include <QSettings>
 #include <QPropertyAnimation>
 #include <QGraphicsDropShadowEffect>
+#include "Tools.h"
+#include "fileslistwidget.h"
 
 #define  AUTOHIDE_BASEREG "HKEY_CURRENT_USER\\Software\\CopyFiles"
 #define  AUTOHIDE_GROUP "Recent Document List"
 #define  AUTOHIDE_DOCUMENT "Document"
-#define  AUTOHIDE_DOCUMENTCOUNT "DocumentCount"
+
+class AutoHideUI 
+{
+public:
+	AutoHideUI(){
+
+	}
+	void setupUi(QWidget *Form)
+	{
+		verticalLayout_2 = new QVBoxLayout(Form);
+		verticalLayout_2->setObjectName(QStringLiteral("verticalLayout_2"));
+		verticalLayout_2->setContentsMargins(0, -1, 0, -1);
+		horizontalLayout = new QHBoxLayout();
+		horizontalLayout->setSpacing(0);
+		horizontalLayout->setObjectName(QStringLiteral("horizontalLayout"));
+		listWidget = new FilesListWidget(Form);
+		listWidget->setObjectName(QStringLiteral("listWidget"));
+
+		horizontalLayout->addWidget(listWidget);
+
+		verticalLayout = new QVBoxLayout();
+		verticalLayout->setSpacing(0);
+		verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
+		verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
+
+		verticalLayout->addItem(verticalSpacer);
+
+		label_history = new QLabel(Form);
+
+		verticalLayout->addWidget(label_history);
+
+		verticalSpacer_2 = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
+
+		verticalLayout->addItem(verticalSpacer_2);
+
+
+		horizontalLayout->addLayout(verticalLayout);
+
+
+		verticalLayout_2->addLayout(horizontalLayout);
+
+		horizontalLayout_2 = new QHBoxLayout();
+		horizontalLayout_2->setObjectName(QStringLiteral("horizontalLayout_2"));
+		horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+		horizontalLayout_2->addItem(horizontalSpacer);
+
+		checkBox = new QCheckBox(Form);
+		checkBox->setObjectName(QStringLiteral("checkBox"));
+
+		horizontalLayout_2->addWidget(checkBox);
+
+		horizontalSpacer_2 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+		horizontalLayout_2->addItem(horizontalSpacer_2);
+
+		verticalLayout_2->addLayout(horizontalLayout_2);
+
+		QMetaObject::connectSlotsByName(Form);
+	} // setupUi
+public:
+	QVBoxLayout *verticalLayout_2;
+	QHBoxLayout *horizontalLayout;
+	FilesListWidget *listWidget;
+	QVBoxLayout *verticalLayout;
+	QSpacerItem *verticalSpacer;
+	QLabel		*label_history;
+	QSpacerItem *verticalSpacer_2;
+	QHBoxLayout *horizontalLayout_2;
+	QSpacerItem *horizontalSpacer;
+	QCheckBox   *checkBox;
+	QSpacerItem *horizontalSpacer_2;
+};
 
 AutoHide::AutoHide(QWidget *parent) :
-QWidget(parent)
+QWidget(parent),
+ui(new AutoHideUI)
 {
+	ui->setupUi(this);
 	initUi();
     m_nParentWidth = parent->width();
 	parent->installEventFilter(this);
 	m_enDriection = Left;
-	m_borderOffset = 18;
+	m_borderOffset = 32;
 	m_nAnimaDuration = 300;
+	m_isAutoHide = true;
 	displayHistory();
 
 #if 0   //阴影效果
@@ -32,7 +113,7 @@ QWidget(parent)
 
 AutoHide::~AutoHide()
 {
-  
+	delete ui;
 }
 
 void AutoHide::SetAttr(Direction direction, bool bIsAutoHide)
@@ -47,9 +128,8 @@ void AutoHide::recordHistory(QString filePath)
 	settings.beginGroup(AUTOHIDE_GROUP);
 	
 	QStringList child = settings.childKeys();
-	int nCount = settings.value(AUTOHIDE_DOCUMENTCOUNT).toInt();
-	settings.setValue(AUTOHIDE_DOCUMENT + QString::number(++nCount), filePath);
-	settings.setValue(AUTOHIDE_DOCUMENTCOUNT, nCount);
+	int nNextIndex = CTools::CalcNextIndex(child.size(), child);
+	settings.setValue(AUTOHIDE_DOCUMENT + QString::number(nNextIndex), filePath);
 	settings.endGroup();
 	//显示
 	addListItem(filePath);
@@ -61,7 +141,7 @@ bool AutoHide::eventFilter(QObject *watched, QEvent *event)
 	{
 		if (event->type() == QEvent::Resize)
 		{
-			QWidget* parent = qobject_cast<	QWidget*>(watched);
+			QWidget* parent = qobject_cast<QWidget*>(watched);
 
 			if (Up == m_enDriection)
 			{
@@ -73,7 +153,7 @@ bool AutoHide::eventFilter(QObject *watched, QEvent *event)
 			{
 				this->resize(parent->width() *0.5, parent->height() - 34);
 				m_nParentWidth = parent->width();
-				move(-this->width() + m_borderOffset, y());
+				move(-this->width() + ui->label_history->width(), y());
 			}
 			else if (Right == m_enDriection)
 			{
@@ -83,6 +163,14 @@ bool AutoHide::eventFilter(QObject *watched, QEvent *event)
 			}		
 		}		
 	}	
+	if (watched == ui->label_history)
+	{
+		if (event->type() == QEvent::Enter)
+		{
+			if (m_isAutoHide)
+				showWidget();
+		}
+	}
 	return QWidget::eventFilter(watched, event);
 }
 
@@ -93,15 +181,6 @@ void AutoHide::leaveEvent(QEvent *event)
         hideWidget();
     }
     QWidget::leaveEvent(event);
-}
-
-void AutoHide::enterEvent(QEvent *event)
-{
-    if(m_isAutoHide)
-    {
-        showWidget();
-    }
-    QWidget::enterEvent(event);
 }
 
 void AutoHide::showWidget()
@@ -129,14 +208,6 @@ void AutoHide::showWidget()
     animation->start();
 }
 
-void AutoHide::addListItem(QString filePath)
-{
-	QListWidgetItem* item = new QListWidgetItem(filePath);
-	item->setSizeHint(QSize(this->width(), 100));
-	item->setToolTip(filePath);
-	listWidget->addItem(item);
-}
-
 void AutoHide::hideWidget()
 {
     QPropertyAnimation *animation = new QPropertyAnimation(this, "geometry");
@@ -150,7 +221,7 @@ void AutoHide::hideWidget()
     }
     else if (m_enDriection & Left)
     {
-		rcEnd = QRect(-this->width() + m_borderOffset, this->y(), this->size().width(), this->rect().height());
+		rcEnd = QRect(/*-this->width() + m_borderOffset*/-ui->listWidget->width(), this->y(), this->size().width(), this->rect().height());
     }
     else if (m_enDriection & Right)
     {
@@ -160,6 +231,16 @@ void AutoHide::hideWidget()
     animation->start();
 }
 
+
+void AutoHide::addListItem(QString filePath)
+{
+	QFontMetrics fm(this->font());
+	QListWidgetItem* item = new QListWidgetItem(filePath);
+	item->setSizeHint(QSize(qMax(this->width(), fm.width(filePath)), 100));
+	item->setToolTip(filePath);
+	ui->listWidget->addItem(item);
+}
+
 void AutoHide::displayHistory()
 {
 	QSettings settings(AUTOHIDE_BASEREG, QSettings::NativeFormat);
@@ -167,39 +248,10 @@ void AutoHide::displayHistory()
 	QStringList keys = settings.childKeys();
 	for each (const QString& var in keys)
 	{
-		if (var == AUTOHIDE_DOCUMENTCOUNT)
-			continue;
 		QString strItem = settings.value(var).toString();
 		addListItem(strItem);
 	}
 	settings.endGroup();
-}
-
-void AutoHide::keyPressEvent(QKeyEvent *event)
-{
-	switch (event->key())
-	{
-	case  Qt::Key_Delete:
-		removeSelectItems();
-		break;
-	default:
-		break;
-	}
-}
-void AutoHide::removeSelectItems()
-{
-	QList<QListWidgetItem*>& indexList = listWidget->selectedItems();
-	QListWidgetItem* pItem = NULL;
-	for (int i = 0; i < indexList.size(); ++i)
-	{
-		pItem = indexList.at(i);
-		if (pItem)
-		{
-			deleteHistory(pItem->text());
-			listWidget->takeItem(listWidget->row(pItem));
-		}		
-	}
-	listWidget->setCurrentRow(listWidget->count() - 1);
 }
 
 void AutoHide::deleteHistory(QString value)
@@ -207,7 +259,6 @@ void AutoHide::deleteHistory(QString value)
 	QSettings settings(AUTOHIDE_BASEREG, QSettings::NativeFormat);
 	settings.beginGroup(AUTOHIDE_GROUP);
 	QStringList keys = settings.childKeys();
-
 	for (int i = 0; i < keys.size();++i)
 	{
 		QString record = settings.value(keys.at(i)).toString();
@@ -221,33 +272,25 @@ void AutoHide::deleteHistory(QString value)
 
 void AutoHide::initUi()
 {
-	this->resize(400, 588);
-	verticalLayout = new QVBoxLayout(this);
-	listWidget = new QListWidget(this);
-	//多选
-	listWidget->setSelectionMode(QListWidget::ExtendedSelection);	
-	//listWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-	verticalLayout->addWidget(listWidget);
-	horizontalLayout = new QHBoxLayout();
-	horizontalSpacerLeft = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
-
-	horizontalLayout->addItem(horizontalSpacerLeft);
-	checkBox = new QCheckBox(this);
-	checkBox->setText(QString::fromLocal8Bit("固定"));
-	horizontalLayout->addWidget(checkBox);
-	horizontalSpacerRight = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
-	horizontalLayout->addItem(horizontalSpacerRight);
-	verticalLayout->addLayout(horizontalLayout);
-
-	connect(listWidget, &QListWidget::itemClicked, [=](QListWidgetItem *item){
+	ui->listWidget->setDoubleEdit(false);
+	ui->checkBox->setText(QString::fromLocal8Bit("固定"));
+	
+	QPixmap *pixmap = new QPixmap(":/images/history.png"); 
+	pixmap->size();
+	ui->label_history->resize(pixmap->size());
+	ui->label_history->setPixmap(*pixmap);
+	ui->label_history->setToolTip(QString::fromLocal8Bit("历史记录"));
+	ui->label_history->installEventFilter(this);
+	connect(ui->listWidget, &QListWidget::itemDoubleClicked, [=](QListWidgetItem *item){
 		sig_ItemDoubleClicked(item->text());
 		if (m_isAutoHide)
 		{
 			hideWidget();
-		}		
+		}
 	});
-	connect(checkBox, &QCheckBox::stateChanged, [=](int state){
+	connect(ui->checkBox, &QCheckBox::stateChanged, [=](int state){
 		m_isAutoHide = !state;
+		ui->label_history->setVisible(m_isAutoHide);		
 		sig_fixed(state);
-	});	
+	});
 }

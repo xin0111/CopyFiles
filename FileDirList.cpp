@@ -7,14 +7,13 @@
 #include "Copythread.h"
 
 FileDirList::FileDirList(QWidget *parent)
-: QListWidget(parent)
+: FilesListWidget(parent)
 {
 	this->setAcceptDrops(true);
 	this->setDragEnabled(true);
-	this->setSelectionMode(QListWidget::ExtendedSelection);
 	this->setContextMenuPolicy(Qt::DefaultContextMenu);	
 	m_pDeleteItemAction = new QAction(QString::fromLocal8Bit("删除"),this);
-	connect(m_pDeleteItemAction, SIGNAL(triggered()), this, SLOT(RemoveSelectItem()));
+	connect(m_pDeleteItemAction, SIGNAL(triggered()), this, SLOT(removeSelectItems()));
 	m_pClearAction = new QAction(QString::fromLocal8Bit("清空"),this);
 	connect(m_pClearAction, SIGNAL(triggered()), this, SLOT(ClearItems()));
 	m_pOpenAction = new QAction(QString::fromLocal8Bit("打开文件夹"),this);	
@@ -123,16 +122,6 @@ void FileDirList::dropEvent(QDropEvent *event)
 	}
 }
 
-void FileDirList::RemoveSelectItem()
-{
-	QList<QListWidgetItem*>& indexList = this->selectedItems();
-	for (int i = 0; i < indexList.size(); ++i)
-	{
-		this->takeItem(this->row(indexList.at(i)));		
-	}
-	this->setCurrentRow(count()-1);
-}
-
 void FileDirList::ClearItems()
 {
 	this->clear();
@@ -167,99 +156,6 @@ QListWidgetItem * FileDirList::appendItem(QString filePath)
 	this->insertItem(count(), newItem);		
 	return newItem;
 }
-
-void FileDirList::keyPressEvent(QKeyEvent *event)
-{
-
-	switch (event->key())
-	{
-	case  Qt::Key_Delete:
-		RemoveSelectItem();
-		break;
-	case Qt::Key_Up:
-	{
-					   int nCurrentRow = currentRow();					   
-					   if (nCurrentRow != 0 &&
-						   nCurrentRow != -1)
-					   {
-						   int nPreRow = nCurrentRow - 1;
-						   
-						   QListWidgetItem * pCurrentItem = item(nCurrentRow);
-						   QListWidgetItem * pPreItem = item(nPreRow);
-						   QString strCurrent = pCurrentItem->text();
-						   QString strPre = pPreItem->text();
-
-						   pCurrentItem->setText(strPre);
-						   pPreItem->setText(strCurrent);
-
-						   setCurrentRow(nPreRow);
-					   }
-						
-	}break;
-	case Qt::Key_Down:
-	{
-						 int nCurrentRow = currentRow();
-						 if (nCurrentRow != count()-1 &&
-							 nCurrentRow != -1)
-						 {
-							 int nNextRow = nCurrentRow + 1;
-
-							 QListWidgetItem * pCurrentItem = item(nCurrentRow);
-							 QListWidgetItem * pNextItem = item(nNextRow);
-
-							 QString strCurrent = pCurrentItem->text();
-							 QString strNext = pNextItem->text();
-
-							 pCurrentItem->setText(strNext);
-							 pNextItem->setText(strCurrent);
-
-							 setCurrentRow(nNextRow);
-						 }
-	}break;
-	default:
-		break;
-	}
-}
-
-void FileDirList::mouseDoubleClickEvent(QMouseEvent *event)
-{	
-	QPoint pos = event->pos();
-	QListWidgetItem * pItem = itemAt(pos.x(), pos.y());
-	if (pItem)
-	{
-		pItem->setFlags(pItem->flags() | Qt::ItemIsEditable);
-		editItem(pItem);	
-	}
-	else
-	{
-		this->addItem("");
-		pItem = item(count() - 1);
-		if (pItem)
-		{	
-			pItem->setFlags(pItem->flags() | Qt::ItemIsEditable);
-			setCurrentItem(pItem);			
-			editItem(pItem);			
-		}
-	}
-}
-#include <QMetaProperty>
-void FileDirList::closeEditor(QWidget *editor, QAbstractItemDelegate::EndEditHint hint)
-{
-	QMap<int, QVariant> datas = this->model()->itemData(currentIndex());
-	if (datas.isEmpty()) return;
-	QString path = datas.first().toString();
-	if (path.isEmpty())
-	{
-		takeItem(currentRow());
-		return;
-	}
-	else
-	{
-		//TODO
-	}
-	QListWidget::closeEditor(editor, hint);
-}
-
 
 bool FileDirList::isValidFilePath(QString& filePath)
 {

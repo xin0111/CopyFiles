@@ -5,7 +5,9 @@
 #include <QDropEvent>
 #include <QAction>
 #include <QMenu>
-class FileDirList : public QListWidget
+#include "fileslistwidget.h"
+
+class FileDirList : public FilesListWidget
 {
 	Q_OBJECT
 
@@ -30,17 +32,10 @@ protected:
 	void dragMoveEvent(QDragMoveEvent *e);
 	void dropEvent(QDropEvent *event);
 	virtual void contextMenuEvent(QContextMenuEvent *event);
-	void keyPressEvent(QKeyEvent *event);
-	void mouseDoubleClickEvent(QMouseEvent *event);
 	bool typeCheck(QString fileName);
 public slots:
-	void RemoveSelectItem();
 	void ClearItems();
 	void OpenDir();	
-Q_SLOT
-	void closeEditor(QWidget *editor, QAbstractItemDelegate::EndEditHint hint);
-
-
 private:
 	CopyDirType m_copydirType;
 	QMenu   *   m_pMenu;
