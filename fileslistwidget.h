@@ -20,6 +20,8 @@ Q_SLOT
 	void closeEditor(QWidget *editor, QAbstractItemDelegate::EndEditHint hint);
 public slots:
 	void removeSelectItems();
+signals:
+	void sig_removeItemsToolTip(const QStringList &itemTexts);
 private:
 	bool m_doubleEdit;
 	bool m_keyDelete;

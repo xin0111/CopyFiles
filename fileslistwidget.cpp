@@ -29,8 +29,8 @@ void FilesListWidget::keyPressEvent(QKeyEvent *event)
 	{
 	case  Qt::Key_Delete:
 	{
-							if (m_keyDelete)
-								removeSelectItems();
+					if (m_keyDelete)
+						removeSelectItems();
 	}
 		break;
 	case Qt::Key_Up:
@@ -125,9 +125,12 @@ void FilesListWidget::closeEditor(QWidget *editor, QAbstractItemDelegate::EndEdi
 void FilesListWidget::removeSelectItems()
 {
 	QList<QListWidgetItem*>& indexList = this->selectedItems();
+	QStringList itemTexts;
 	for (int i = 0; i < indexList.size(); ++i)
 	{
-		this->takeItem(this->row(indexList.at(i)));
+		itemTexts << indexList.at(i)->toolTip();
+		this->takeItem(this->row(indexList.at(i)));		
 	}
 	this->setCurrentRow(count() - 1);
+	sig_removeItemsToolTip(itemTexts);
 }

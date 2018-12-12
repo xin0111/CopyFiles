@@ -6,6 +6,7 @@
 #include <QPoint>
 #include <QDebug>
 #include <QSettings>
+#include <QFileInfo>
 #include <QPropertyAnimation>
 #include <QGraphicsDropShadowEffect>
 #include "Tools.h"
@@ -101,7 +102,15 @@ ui(new AutoHideUI)
 	m_nAnimaDuration = 300;
 	m_isAutoHide = true;
 	displayHistory();
-
+	connect(ui->listWidget, &FilesListWidget::sig_removeItemsToolTip,
+		[=](const QStringList &itemTexts)
+	{
+		for each (QString var in itemTexts)
+		{
+			deleteHistory(var);
+		}
+		
+	});
 #if 0   //阴影效果
     QGraphicsDropShadowEffect* effect = new QGraphicsDropShadowEffect;
     effect->setBlurRadius(5);
@@ -234,10 +243,10 @@ void AutoHide::hideWidget()
 
 void AutoHide::addListItem(QString filePath)
 {
-	QFontMetrics fm(this->font());
-	QListWidgetItem* item = new QListWidgetItem(filePath);
-	item->setSizeHint(QSize(qMax(this->width(), fm.width(filePath)), 100));
-	item->setToolTip(filePath);
+	//QFontMetrics fm(this->font());
+	QListWidgetItem* item = new QListWidgetItem(QFileInfo(filePath).fileName());
+	//item->setSizeHint(QSize(qMax(this->width(), fm.width(filePath)), 100));
+	item->setToolTip(filePath);	
 	ui->listWidget->addItem(item);
 }
 
@@ -282,7 +291,7 @@ void AutoHide::initUi()
 	ui->label_history->setToolTip(QString::fromLocal8Bit("历史记录"));
 	ui->label_history->installEventFilter(this);
 	connect(ui->listWidget, &QListWidget::itemDoubleClicked, [=](QListWidgetItem *item){
-		sig_ItemDoubleClicked(item->text());
+		sig_ItemDoubleClicked(item->toolTip());
 		if (m_isAutoHide)
 		{
 			hideWidget();
