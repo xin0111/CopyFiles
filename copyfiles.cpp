@@ -15,7 +15,7 @@ CopyFilesWindow::CopyFilesWindow(QWidget *parent)
 : QMainWindow(parent), m_nStep(0)
 {
 	ui.setupUi(this);	
-	m_autoHide = new AutoHide(this);
+	m_autoHide = new AutoHide(this);	
 	m_strTitle = this->windowTitle();
 	ui.dockWidget->setVisible(false);	
 	ui.dockWidget->setWindowTitle(QString::fromLocal8Bit("历史记录"));
@@ -302,6 +302,7 @@ void CopyFilesWindow::resetPage()
 	addNewPage();
 }
 
+#include <QCheckBox>
 #define  LocalString_CN(str) QString::fromLocal8Bit(str).toStdString().c_str()
 void CopyFilesWindow::on_pushButton_Help_clicked()
 {
@@ -311,11 +312,22 @@ void CopyFilesWindow::on_pushButton_Help_clicked()
 		"<p>") + tr(LocalString_CN(">:")) + tr(LocalString_CN("<b>（目录/>新目录）或（文件>新目录）或（*.后缀>新目录）</b> 创建拷贝新根目录")) + QString::fromLatin1("</p>"
 		"<p>");
 	QMessageBox msgBox;
-	msgBox.setText(help);
+	msgBox.setText(help);	
 	msgBox.setWindowIcon(this->windowIcon());
-	msgBox.setStandardButtons(QMessageBox::Ok);
+
+	QButtonGroup btngroup;
+	QCheckBox * pCheckBox = new QCheckBox(QString::fromLocal8Bit("显示历史"),&msgBox);
+	pCheckBox->setChecked(m_autoHide->historyVisiable());
+	msgBox.layout()->addWidget(pCheckBox);		
+	msgBox.addButton(QMessageBox::Ok);
 	msgBox.addButton(QStringLiteral("注册"), QMessageBox::AcceptRole);
+
 	msgBox.setDefaultButton(QMessageBox::Ok);	
+	connect(pCheckBox, &QCheckBox::stateChanged, [=](int state)
+	{
+		m_autoHide->setHistoryVisiable(state);
+		m_autoHide->setVisible(state);
+	});
 	if (QMessageBox::AcceptRole == msgBox.exec())
 	{
 		registerApp();

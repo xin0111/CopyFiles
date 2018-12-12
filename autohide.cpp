@@ -14,6 +14,7 @@
 
 #define  AUTOHIDE_BASEREG "HKEY_CURRENT_USER\\Software\\CopyFiles"
 #define  AUTOHIDE_GROUP "Recent Document List"
+#define  AUTOHIDE_HISTORY "History"
 #define  AUTOHIDE_DOCUMENT "Document"
 
 class AutoHideUI 
@@ -111,6 +112,8 @@ ui(new AutoHideUI)
 		}
 		
 	});
+
+	setVisible(historyVisiable());
 #if 0   //阴影效果
     QGraphicsDropShadowEffect* effect = new QGraphicsDropShadowEffect;
     effect->setBlurRadius(5);
@@ -277,6 +280,23 @@ void AutoHide::deleteHistory(QString value)
 		}
 	}
 	settings.endGroup();
+}
+
+void AutoHide::setHistoryVisiable(bool bVisiable)
+{
+	QSettings settings(AUTOHIDE_BASEREG, QSettings::NativeFormat);
+	settings.beginGroup(AUTOHIDE_HISTORY);
+	settings.setValue("Enable", bVisiable);
+	settings.endGroup();
+}
+
+bool AutoHide::historyVisiable()
+{
+	QSettings settings(AUTOHIDE_BASEREG, QSettings::NativeFormat);
+	settings.beginGroup(AUTOHIDE_HISTORY);
+	bool bEnable = settings.value("Enable").toBool();
+	settings.endGroup();
+	return bEnable;
 }
 
 void AutoHide::initUi()

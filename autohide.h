@@ -19,6 +19,8 @@ public:
     ~AutoHide();
 	void SetAttr(Direction direction, bool bIsAutoHide);
 	void recordHistory(QString filePath);
+	void setHistoryVisiable(bool bVisiable);
+	bool historyVisiable();
 signals:
 	void sig_ItemDoubleClicked(QString);
 	void sig_fixed(bool bFixed);
