@@ -1,4 +1,4 @@
-﻿#include "autohide.h"
+#include "autohide.h"
 #include <QtWidgets/QListWidget>
 #include <QtWidgets/QVBoxLayout>
 #include <QCheckBox>
@@ -12,7 +12,7 @@
 #include "Tools.h"
 #include "fileslistwidget.h"
 
-#define  AUTOHIDE_BASEREG "HKEY_CURRENT_USER\\Software\\CopyFiles"
+#define  AUTOHIDE_BASEREG "CopyFiles"
 #define  AUTOHIDE_GROUP "Recent Document List"
 #define  AUTOHIDE_HISTORY "History"
 #define  AUTOHIDE_DOCUMENT "Document"
@@ -136,13 +136,10 @@ void AutoHide::SetAttr(Direction direction, bool bIsAutoHide)
 
 void AutoHide::recordHistory(QString filePath)
 {
-	QSettings settings(AUTOHIDE_BASEREG, QSettings::NativeFormat);
-	settings.beginGroup(AUTOHIDE_GROUP);
-	
+	QSettings settings(AUTOHIDE_BASEREG, AUTOHIDE_GROUP);	
 	QStringList child = settings.childKeys();
 	int nNextIndex = CTools::CalcNextIndex(child.size(), child);
 	settings.setValue(AUTOHIDE_DOCUMENT + QString::number(nNextIndex), filePath);
-	settings.endGroup();
 	//显示
 	addListItem(filePath);
 }
@@ -246,30 +243,27 @@ void AutoHide::hideWidget()
 
 void AutoHide::addListItem(QString filePath)
 {
-	//QFontMetrics fm(this->font());
-	QListWidgetItem* item = new QListWidgetItem(QFileInfo(filePath).fileName());
-	//item->setSizeHint(QSize(qMax(this->width(), fm.width(filePath)), 100));
+	QListWidgetItem* item = new QListWidgetItem(QFileInfo(filePath).fileName());	
 	item->setToolTip(filePath);	
 	ui->listWidget->addItem(item);
 }
 
 void AutoHide::displayHistory()
 {
-	QSettings settings(AUTOHIDE_BASEREG, QSettings::NativeFormat);
-	settings.beginGroup(AUTOHIDE_GROUP);
+	QSettings settings(AUTOHIDE_BASEREG, AUTOHIDE_GROUP);
+
 	QStringList keys = settings.childKeys();
 	for each (const QString& var in keys)
 	{
 		QString strItem = settings.value(var).toString();
 		addListItem(strItem);
 	}
-	settings.endGroup();
 }
 
 void AutoHide::deleteHistory(QString value)
 {
-	QSettings settings(AUTOHIDE_BASEREG, QSettings::NativeFormat);
-	settings.beginGroup(AUTOHIDE_GROUP);
+	QSettings settings(AUTOHIDE_BASEREG, AUTOHIDE_GROUP);
+	
 	QStringList keys = settings.childKeys();
 	for (int i = 0; i < keys.size();++i)
 	{
@@ -279,23 +273,18 @@ void AutoHide::deleteHistory(QString value)
 			settings.remove(keys.at(i));
 		}
 	}
-	settings.endGroup();
 }
 
 void AutoHide::setHistoryVisiable(bool bVisiable)
 {
-	QSettings settings(AUTOHIDE_BASEREG, QSettings::NativeFormat);
-	settings.beginGroup(AUTOHIDE_HISTORY);
-	settings.setValue("Enable", bVisiable);
-	settings.endGroup();
+	QSettings settings(AUTOHIDE_BASEREG, AUTOHIDE_HISTORY);
+	settings.setValue("Enable", bVisiable);	
 }
 
 bool AutoHide::historyVisiable()
 {
-	QSettings settings(AUTOHIDE_BASEREG, QSettings::NativeFormat);
-	settings.beginGroup(AUTOHIDE_HISTORY);
-	bool bEnable = settings.value("Enable").toBool();
-	settings.endGroup();
+	QSettings settings(AUTOHIDE_BASEREG, AUTOHIDE_HISTORY);	
+	bool bEnable = settings.value("Enable").toBool();	
 	return bEnable;
 }
 
