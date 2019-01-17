@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QMouseEvent>
+#include <QSettings>
 
 enum Direction
 {
@@ -30,10 +31,11 @@ protected:
 private:
 	void hideWidget();
 	void showWidget();
-	void addListItem(QString filePath);
+	void addListItem(const QString& filePath);
 	void displayHistory();
-	void deleteHistory(QString value);
+	void deleteHistory(const QString& value);
 	void removeSelectItems();
+	bool checkPath(const QSettings& settings, const QString& filePath, QString& keyFind = QString());
 private:
 	bool m_isAutoHide;
     Direction m_enDriection;

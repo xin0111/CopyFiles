@@ -1,11 +1,10 @@
-#include "autohide.h"
+﻿#include "autohide.h"
 #include <QtWidgets/QListWidget>
 #include <QtWidgets/QVBoxLayout>
 #include <QCheckBox>
 #include <QLabel>
 #include <QPoint>
 #include <QDebug>
-#include <QSettings>
 #include <QFileInfo>
 #include <QPropertyAnimation>
 #include <QGraphicsDropShadowEffect>
@@ -137,7 +136,9 @@ void AutoHide::SetAttr(Direction direction, bool bIsAutoHide)
 void AutoHide::recordHistory(QString filePath)
 {
 	QSettings settings(AUTOHIDE_BASEREG, AUTOHIDE_GROUP);	
-	QStringList child = settings.childKeys();
+	if (checkPath(settings, filePath))
+		return;
+	QStringList child = settings.childKeys();	
 	int nNextIndex = CTools::CalcNextIndex(child.size(), child);
 	settings.setValue(AUTOHIDE_DOCUMENT + QString::number(nNextIndex), filePath);
 	//显示
@@ -241,7 +242,7 @@ void AutoHide::hideWidget()
 }
 
 
-void AutoHide::addListItem(QString filePath)
+void AutoHide::addListItem(const QString& filePath)
 {
 	QListWidgetItem* item = new QListWidgetItem(QFileInfo(filePath).fileName());	
 	item->setToolTip(filePath);	
@@ -260,18 +261,13 @@ void AutoHide::displayHistory()
 	}
 }
 
-void AutoHide::deleteHistory(QString value)
+void AutoHide::deleteHistory(const QString& value)
 {
 	QSettings settings(AUTOHIDE_BASEREG, AUTOHIDE_GROUP);
-	
-	QStringList keys = settings.childKeys();
-	for (int i = 0; i < keys.size();++i)
-	{
-		QString record = settings.value(keys.at(i)).toString();
-		if (record == value)
-		{
-			settings.remove(keys.at(i));
-		}
+	QString keyDel;
+	if (checkPath(settings, value, keyDel))
+	{		
+		settings.remove(keyDel);
 	}
 }
 
@@ -311,4 +307,19 @@ void AutoHide::initUi()
 		ui->label_history->setVisible(m_isAutoHide);		
 		sig_fixed(state);
 	});
+}
+
+bool AutoHide::checkPath(const QSettings& settings, const QString& filePath, QString& keyFind/*=QString()*/)
+{
+	QStringList keys = settings.childKeys();
+	for (int i = 0; i < keys.size(); ++i)
+	{
+		QString record = settings.value(keys.at(i)).toString();
+		if (record == filePath)
+		{
+			keyFind = keys.at(i);
+			return true;
+		}
+	}
+	return false;
 }

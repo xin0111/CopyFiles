@@ -148,6 +148,8 @@ void CopyFilesWindow::on_reset(bool bSuccessed, QString strMsg)
 
 void CopyFilesWindow::importFromXml(QString filePath,bool fromHistory /*= false*/)
 {
+	filePath.replace("\\", "/");
+
 	QDomDocument doc;
 	CTools::openXml(doc, filePath);
 
