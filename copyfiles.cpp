@@ -15,6 +15,7 @@ CopyFilesWindow::CopyFilesWindow(QWidget *parent)
 : QMainWindow(parent), m_nStep(0)
 {
 	ui.setupUi(this);	
+	this->setWindowIcon(QIcon(":/icon1.ico"));
 	m_autoHide = new AutoHide(this);	
 	m_strTitle = this->windowTitle();
 	ui.dockWidget->setVisible(false);	

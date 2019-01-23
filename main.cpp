@@ -2,6 +2,11 @@
 #include <QtWidgets/QApplication>
 #include <QCommandLineParser>
 
+#if defined(COPYFILES_STACTIC)
+#include <QtCore/QtPlugin>
+Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin)
+#endif
+
 int main(int argc, char *argv[])
 {
 	QApplication a(argc, argv);
