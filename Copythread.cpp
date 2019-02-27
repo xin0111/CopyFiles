@@ -37,14 +37,14 @@ void CopyThread::run()
 			i.next();
 			strCopyFrom = i.key();
 			copyToList = i.value();
-			//≤È’“πÊ‘Ú
+			//Êü•ÊâæËßÑÂàô
 			AddFileRules(strCopyFrom, copyToList);
 			if (hasCopyError())	break;
 		}
 		if (!hasCopyError())
 		{
 			sig_copyRuleCount(m_fileRules.size());
-			//øΩ±¥Œƒº˛
+			//Êã∑Ë¥ùÊñá‰ª∂
 			for each (QStringList var in m_fileRules)
 			{
 				sig_copyFromItem(var.at(0));
@@ -71,7 +71,7 @@ bool CopyThread::copyDirectoryRules(const QString &fromDir, const QString &toDir
 
 	QDir targetDir(newToDir);
 
-	if (!targetDir.exists()){    /**< »Áπ˚ƒø±Íƒø¬º≤ª¥Ê‘⁄£¨‘ÚΩ¯––¥¥Ω® */
+	if (!targetDir.exists()){    /**< Â¶ÇÊûúÁõÆÊ†áÁõÆÂΩï‰∏çÂ≠òÂú®ÔºåÂàôËøõË°åÂàõÂª∫ */
 		if (!targetDir.mkpath(targetDir.absolutePath()))
 		{
 			setErrorString(CTools::UNABLE_CREATE, targetDir.absolutePath());
@@ -83,7 +83,7 @@ bool CopyThread::copyDirectoryRules(const QString &fromDir, const QString &toDir
 		if (fileInfo.fileName() == "." || fileInfo.fileName() == "..")
 			continue;
 		qDebug() << fileInfo.filePath();
-		if (fileInfo.isDir()){    /**< µ±Œ™ƒø¬º ±£¨µ›πÈµƒΩ¯––copy */		
+		if (fileInfo.isDir()){    /**< ÂΩì‰∏∫ÁõÆÂΩïÊó∂ÔºåÈÄíÂΩíÁöÑËøõË°åcopy */		
 			if (!findChildDir)
 				continue;
 			if (!copyDirectoryRules(fileInfo.filePath(),
@@ -91,12 +91,12 @@ bool CopyThread::copyDirectoryRules(const QString &fromDir, const QString &toDir
 				return false;
 		}
 		else{
-			//’˝‘Ú∆•≈‰
+			//Ê≠£ÂàôÂåπÈÖç
 			if (!m_regFile.isEmpty() && (
 				!m_regFile.exactMatch(fileInfo.filePath())))
 				continue;
 
-			//¥Ê¥¢πÊ‘Ú
+			//Â≠òÂÇ®ËßÑÂàô
 			m_fileRules.push_back(QStringList()<<fileInfo.filePath()<<newToDir);
 		}
 	}
@@ -111,7 +111,7 @@ void CopyThread::AddFileHash(QString strFrom, QStringList listTo)
 void CopyThread::AddFileRules(QString strFrom, QStringList listTo)
 {
 	if (QDir::isRelativePath(strFrom))
-	{//œ‡∂‘¬∑æ∂ ¥¶¿Ì 
+	{//Áõ∏ÂØπË∑ØÂæÑ Â§ÑÁêÜ 
 		strFrom = m_ruleFilePath + strFrom;
 	}	
 	QFileInfo fromFileInfo(strFrom);
@@ -123,33 +123,42 @@ void CopyThread::AddFileRules(QString strFrom, QStringList listTo)
 		QString toRootDirName;
 		bool bFindChirdDir = true;
 
-		QString strReg = fromFileInfo.fileName();
-		qDebug() << strReg;
-		if (strReg.indexOf("*") != -1||
-			strReg.indexOf(">") != -1)
-		{//¥Ê‘⁄’˝‘Ú				
-			if (strReg.split("-").size() >= 2)
-			{//’˝‘Ú «∑Ò∆•≈‰◊”ƒø¬º
+		QString nameReg = fromFileInfo.fileName();
+		qDebug() << nameReg;
+	
+		// ÈùûÊñá‰ª∂ÂêçÁâπÊÆäÂ≠óÁ¨¶
+		if (nameReg.indexOf("*") != -1||
+			nameReg.indexOf(">") != -1||
+			nameReg.indexOf("?") != -1||
+			nameReg.indexOf(":") != -1 ||
+			nameReg.indexOf("\\") != -1 ||
+			nameReg.indexOf("/") != -1 ||
+			nameReg.indexOf("|") != -1 ||
+			nameReg.indexOf("\"") != -1 
+			)
+		{//Â≠òÂú®Ê≠£Âàô				
+			if (nameReg.split("-").size() >= 2)
+			{//Ê≠£ÂàôÊòØÂê¶ÂåπÈÖçÂ≠êÁõÆÂΩï
 				bFindChirdDir = false;
-				strReg = strReg.split("-")[0];
+				nameReg = nameReg.split("-")[0];
 			}
-			else if (strReg.split("+").size() >= 2)
-			{// «∑Ò¥¥Ω®From∏˘ƒø¬º
+			else if (nameReg.split("+").size() >= 2)
+			{//ÊòØÂê¶ÂàõÂª∫FromÊ†πÁõÆÂΩï
 				bAddRoot = true;
 			}
-			else if (strReg.split(">").size() >= 2)
-			{//¥¥Ω® –¬∏˘ƒø¬º
+			else if (nameReg.split(">").size() >= 2)
+			{//ÂàõÂª∫ Êñ∞Ê†πÁõÆÂΩï
 				bAddRoot = true;
-				QStringList findList = QString(strReg).split(">");
+				QStringList findList = QString(nameReg).split(">");
 				if (findList.size() >= 2)
 				{
 					toRootDirName = findList.at(1);
-					strReg = findList.at(0);
+					nameReg = findList.at(0);
 				}
 			}
-			if (!strReg.isEmpty() && strReg != ("*.+"))
+			if (!nameReg.isEmpty() && nameReg != ("*.+"))
 			{
-				m_regFile = QRegExp(".*(\|/)" + strReg);
+				m_regFile = QRegExp(".*([\\|/])" + nameReg);
 			}			
 			if (!m_regFile.isValid())
 				setErrorString(CTools::ERROR_REGEX, strFrom);
@@ -161,7 +170,7 @@ void CopyThread::AddFileRules(QString strFrom, QStringList listTo)
 		if (hasCopyError())	break;
 		
 		if (fromFileInfo.isFile())
-		{//¥Ê¥¢πÊ‘Ú
+		{//Â≠òÂÇ®ËßÑÂàô
 			m_fileRules.push_back(QStringList()<<strFrom <<listTo.at(i));
 		}
 		else if (fromFileInfo.isDir())
