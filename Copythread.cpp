@@ -37,6 +37,8 @@ void CopyThread::run()
 			i.next();
 			strCopyFrom = i.key();
 			copyToList = i.value();
+
+			strCopyFrom.replace("\\", "/");
 			//查找规则
 			AddFileRules(strCopyFrom, copyToList);
 			if (hasCopyError())	break;
@@ -116,14 +118,16 @@ void CopyThread::AddFileRules(QString strFrom, QStringList listTo)
 	}	
 	QFileInfo fromFileInfo(strFrom);
 	
-	for (size_t i = 0; i < listTo.size(); i++)
+	for (int i = 0; i < listTo.size(); i++)
 	{
 		m_regFile = QRegExp();
 		bool bAddRoot = false;
 		QString toRootDirName;
 		bool bFindChirdDir = true;
+		int nIndex =  strFrom.indexOf(QRegExp("[*>?|]"));
 
 		QString nameReg = fromFileInfo.fileName();
+		nameReg = strFrom.mid(nIndex,strFrom.length());
 		qDebug() << nameReg;
 	
 		// 非文件名特殊字符
@@ -144,9 +148,9 @@ void CopyThread::AddFileRules(QString strFrom, QStringList listTo)
 			}
 			else if (nameReg.split("+").size() >= 2)
 			{//是否创建From根目录
-				bAddRoot = true;
+				bAddRoot = true;				
 			}
-			else if (nameReg.split(">").size() >= 2)
+			if (nameReg.split(">").size() >= 2)
 			{//创建 新根目录
 				bAddRoot = true;
 				QStringList findList = QString(nameReg).split(">");
@@ -163,7 +167,7 @@ void CopyThread::AddFileRules(QString strFrom, QStringList listTo)
 			if (!m_regFile.isValid())
 				setErrorString(CTools::ERROR_REGEX, strFrom);
 
-			strFrom = fromFileInfo.dir().path();
+			strFrom = strFrom.mid(0, nIndex-1);
 			fromFileInfo.setFile(strFrom);
 		}
 		
