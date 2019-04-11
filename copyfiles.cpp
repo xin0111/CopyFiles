@@ -243,6 +243,7 @@ void CopyFilesWindow::exportToXml(QString filePath)
 void CopyFilesWindow::on_pushButton_export_clicked()
 {
 	QString filePath = QFileDialog::getSaveFileName(this, QString::fromLocal8Bit("保存文件"),
+		CopyThread::getInstance()->m_ruleFilePath+
 		"CopyRule.xml",	"Xml Files (*.xml )");
 	if (!filePath.isEmpty())
 	{		
