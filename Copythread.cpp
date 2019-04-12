@@ -39,14 +39,14 @@ void CopyThread::run()
 			copyToList = i.value();
 
 			strCopyFrom.replace("\\", "/");
-			//Êü•ÊâæËßÑÂàô
+			//≤È’“πÊ‘Ú
 			AddFileRules(strCopyFrom, copyToList);
 			if (hasCopyError())	break;
 		}
 		if (!hasCopyError())
 		{
 			sig_copyRuleCount(m_fileRules.size());
-			//Êã∑Ë¥ùÊñá‰ª∂
+			//øΩ±¥Œƒº˛
 			for each (QStringList var in m_fileRules)
 			{
 				sig_copyFromItem(var.at(0));
@@ -69,7 +69,7 @@ bool CopyThread::copyDirectoryRules(const QString &fromDir, const QString &toDir
 
 	QDir targetDir(toDir);
 
-	if (!targetDir.exists()){    /**< Â¶ÇÊûúÁõÆÊ†áÁõÆÂΩï‰∏çÂ≠òÂú®ÔºåÂàôËøõË°åÂàõÂª∫ */
+	if (!targetDir.exists()){    /**< »Áπ˚ƒø±Íƒø¬º≤ª¥Ê‘⁄£¨‘ÚΩ¯––¥¥Ω® */
 		if (!targetDir.mkpath(targetDir.absolutePath()))
 		{
 			setErrorString(CTools::UNABLE_CREATE, targetDir.absolutePath());
@@ -81,7 +81,7 @@ bool CopyThread::copyDirectoryRules(const QString &fromDir, const QString &toDir
 		if (fileInfo.fileName() == "." || fileInfo.fileName() == "..")
 			continue;
 		qDebug() << fileInfo.filePath();
-		if (fileInfo.isDir()){    /**< ÂΩì‰∏∫ÁõÆÂΩïÊó∂ÔºåÈÄíÂΩíÁöÑËøõË°åcopy */		
+		if (fileInfo.isDir()){    /**< µ±Œ™ƒø¬º ±£¨µ›πÈµƒΩ¯––copy */		
 			if (!findChildDir)
 				continue;
 			if (!copyDirectoryRules(fileInfo.filePath(),
@@ -89,12 +89,12 @@ bool CopyThread::copyDirectoryRules(const QString &fromDir, const QString &toDir
 				return false;
 		}
 		else{
-			//Ê≠£ÂàôÂåπÈÖç
+			//’˝‘Ú∆•≈‰
 			if (!m_regFile.isEmpty() && (
 				!m_regFile.exactMatch(fileInfo.filePath())))
 				continue;
 
-			//Â≠òÂÇ®ËßÑÂàô
+			//¥Ê¥¢πÊ‘Ú
 			m_fileRules.push_back(QStringList()<<fileInfo.filePath()<<toDir);
 		}
 	}
@@ -109,7 +109,7 @@ void CopyThread::AddFileHash(QString strFrom, QStringList listTo)
 void CopyThread::AddFileRules(QString strFrom, QStringList listTo)
 {
 	if (QDir::isRelativePath(strFrom))
-	{//Áõ∏ÂØπË∑ØÂæÑ Â§ÑÁêÜ 
+	{//œ‡∂‘¬∑æ∂ ¥¶¿Ì 
 		strFrom = m_ruleFilePath + strFrom;
 	}	
 	QFileInfo fromFileInfo(strFrom);
@@ -125,7 +125,7 @@ void CopyThread::AddFileRules(QString strFrom, QStringList listTo)
 		QString suffixReg = strFrom.mid(nIndex,strFrom.length());
 		qDebug() << suffixReg;
 	
-		// ÈùûÊñá‰ª∂ÂêçÁâπÊÆäÂ≠óÁ¨¶
+		// ∑«Œƒº˛√˚Ãÿ ‚◊÷∑˚
 		if (suffixReg.indexOf("*") != -1||
 			suffixReg.indexOf(">") != -1||
 			suffixReg.indexOf("?") != -1||
@@ -135,18 +135,20 @@ void CopyThread::AddFileRules(QString strFrom, QStringList listTo)
 			suffixReg.indexOf("|") != -1 ||
 			suffixReg.indexOf("\"") != -1 
 			)
-		{//Â≠òÂú®Ê≠£Âàô				
+		{//¥Ê‘⁄’˝‘Ú				
 			if (suffixReg.split("-").size() >= 2)
-			{//Ê≠£ÂàôÊòØÂê¶ÂåπÈÖçÂ≠êÁõÆÂΩï
+			{//’˝‘Ú «∑Ò∆•≈‰◊”ƒø¬º
 				bFindChirdDir = false;
 				suffixReg = suffixReg.split("-")[0];
 			}
 			else if (suffixReg.split("+").size() >= 2)
-			{//ÊòØÂê¶ÂàõÂª∫FromÊ†πÁõÆÂΩï
+			{// «∑Ò¥¥Ω®From∏˘ƒø¬º
 				bAddRoot = true;				
+				auto strDirs = strFrom.split("/");
+				toRootDirName = strDirs[strDirs.length()-2];
 			}
 			if (suffixReg.split(">").size() >= 2)
-			{//ÂàõÂª∫ Êñ∞Ê†πÁõÆÂΩï
+			{//¥¥Ω® –¬∏˘ƒø¬º
 				bAddRoot = true;
 				QStringList findList = QString(suffixReg).split(">");
 				if (findList.size() >= 2)
@@ -167,10 +169,9 @@ void CopyThread::AddFileRules(QString strFrom, QStringList listTo)
 		}
 		
 		if (hasCopyError())	break;
-		QString strFileName = fromFileInfo.fileName();
-		toRootDirName = toRootDirName.isEmpty() ? strFileName : toRootDirName;
+
 		if (fromFileInfo.isFile())
-		{//Â≠òÂÇ®ËßÑÂàô
+		{//¥Ê¥¢πÊ‘Ú
 			m_fileRules.push_back(QStringList() << strFrom << 
 				copyToDirectory(listTo.at(i), bAddRoot, toRootDirName ));
 		}
@@ -210,6 +211,7 @@ QString CopyThread::copyToDirectory(const QString &toDir,
 {
 	QString newToDir = toDir;
 	if (addRoot)
-		newToDir.append("/").append(toRootDirName);
+			newToDir.append("/").append(toRootDirName);
+
 	return newToDir;
 }
