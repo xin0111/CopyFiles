@@ -29,9 +29,11 @@ signals:
 	void sig_copyError(QString filePath);
 private:
 	bool copyDirectoryRules(const QString &fromDir, const QString &toDir, 
-		bool addRoot = false, QString toRootDirName = QString(), bool findChildDir = true);
+		 bool findChildDir = true);
 	void setErrorString(CTools::emCopyError errorType, QString filePath);
 	bool hasCopyError();
+	QString copyToDirectory(const QString &toDir,
+		bool addRoot, QString toRootDirName);
 public:
 	QHash<QString, QStringList> m_fileHash;
 	QVector<QStringList> m_fileRules; //From#To
