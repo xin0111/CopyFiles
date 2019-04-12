@@ -59,19 +59,15 @@ void CopyThread::run()
 }
 
 bool CopyThread::copyDirectoryRules(const QString &fromDir, const QString &toDir,
-	bool addRoot, QString toRootDirName, bool findChildDir)
+	 bool findChildDir)
 {
 	QDir sourceDir(fromDir);
 	if (!sourceDir.exists()){
 		setErrorString(CTools::NON_EXISTENT, fromDir);
 		return false;
 	}
-	QString newToDir = toDir;
-	if (addRoot)		
-		newToDir.append("/").append(toRootDirName.isEmpty()?
-		sourceDir.dirName() : toRootDirName);
 
-	QDir targetDir(newToDir);
+	QDir targetDir(toDir);
 
 	if (!targetDir.exists()){    /**< 如果目标目录不存在，则进行创建 */
 		if (!targetDir.mkpath(targetDir.absolutePath()))
@@ -89,7 +85,7 @@ bool CopyThread::copyDirectoryRules(const QString &fromDir, const QString &toDir
 			if (!findChildDir)
 				continue;
 			if (!copyDirectoryRules(fileInfo.filePath(),
-				!m_regFile.isEmpty() ? newToDir : targetDir.filePath(fileInfo.fileName())))
+				!m_regFile.isEmpty() ? toDir : targetDir.filePath(fileInfo.fileName())))
 				return false;
 		}
 		else{
@@ -99,7 +95,7 @@ bool CopyThread::copyDirectoryRules(const QString &fromDir, const QString &toDir
 				continue;
 
 			//存储规则
-			m_fileRules.push_back(QStringList()<<fileInfo.filePath()<<newToDir);
+			m_fileRules.push_back(QStringList()<<fileInfo.filePath()<<toDir);
 		}
 	}
 	return true;
@@ -124,62 +120,65 @@ void CopyThread::AddFileRules(QString strFrom, QStringList listTo)
 		bool bAddRoot = false;
 		QString toRootDirName;
 		bool bFindChirdDir = true;
-		int nIndex =  strFrom.indexOf(QRegExp("[*>?|]"));
+		int nIndex =  strFrom.indexOf(QRegExp("[*>]"));
 
-		QString nameReg = fromFileInfo.fileName();
-		nameReg = strFrom.mid(nIndex,strFrom.length());
-		qDebug() << nameReg;
+		QString suffixReg = strFrom.mid(nIndex,strFrom.length());
+		qDebug() << suffixReg;
 	
 		// 非文件名特殊字符
-		if (nameReg.indexOf("*") != -1||
-			nameReg.indexOf(">") != -1||
-			nameReg.indexOf("?") != -1||
-			nameReg.indexOf(":") != -1 ||
-			nameReg.indexOf("\\") != -1 ||
-			nameReg.indexOf("/") != -1 ||
-			nameReg.indexOf("|") != -1 ||
-			nameReg.indexOf("\"") != -1 
+		if (suffixReg.indexOf("*") != -1||
+			suffixReg.indexOf(">") != -1||
+			suffixReg.indexOf("?") != -1||
+			suffixReg.indexOf(":") != -1 ||
+			suffixReg.indexOf("\\") != -1 ||
+			suffixReg.indexOf("/") != -1 ||
+			suffixReg.indexOf("|") != -1 ||
+			suffixReg.indexOf("\"") != -1 
 			)
 		{//存在正则				
-			if (nameReg.split("-").size() >= 2)
+			if (suffixReg.split("-").size() >= 2)
 			{//正则是否匹配子目录
 				bFindChirdDir = false;
-				nameReg = nameReg.split("-")[0];
+				suffixReg = suffixReg.split("-")[0];
 			}
-			else if (nameReg.split("+").size() >= 2)
+			else if (suffixReg.split("+").size() >= 2)
 			{//是否创建From根目录
 				bAddRoot = true;				
 			}
-			if (nameReg.split(">").size() >= 2)
+			if (suffixReg.split(">").size() >= 2)
 			{//创建 新根目录
 				bAddRoot = true;
-				QStringList findList = QString(nameReg).split(">");
+				QStringList findList = QString(suffixReg).split(">");
 				if (findList.size() >= 2)
 				{
 					toRootDirName = findList.at(1);
-					nameReg = findList.at(0);
+					suffixReg = findList.at(0);					
 				}
 			}
-			if (!nameReg.isEmpty() && nameReg != ("*.+"))
+			if (!suffixReg.isEmpty() && suffixReg != ("*.+"))
 			{
-				m_regFile = QRegExp(".*([\\|/])" + nameReg);
+				m_regFile = QRegExp(".*([\\|/])" + suffixReg);
 			}			
 			if (!m_regFile.isValid())
 				setErrorString(CTools::ERROR_REGEX, strFrom);
 
-			strFrom = strFrom.mid(0, nIndex-1);
+			strFrom = strFrom.mid(0, nIndex);
 			fromFileInfo.setFile(strFrom);
 		}
 		
 		if (hasCopyError())	break;
-		
+		QString strFileName = fromFileInfo.fileName();
+		toRootDirName = toRootDirName.isEmpty() ? strFileName : toRootDirName;
 		if (fromFileInfo.isFile())
 		{//存储规则
-			m_fileRules.push_back(QStringList()<<strFrom <<listTo.at(i));
+			m_fileRules.push_back(QStringList() << strFrom << 
+				copyToDirectory(listTo.at(i), bAddRoot, toRootDirName ));
 		}
 		else if (fromFileInfo.isDir())
 		{
-			copyDirectoryRules(strFrom, listTo.at(i), bAddRoot, toRootDirName, bFindChirdDir);
+			copyDirectoryRules(strFrom,
+				copyToDirectory(listTo.at(i), bAddRoot, toRootDirName),
+				bFindChirdDir);
 		}
 		else
 		{
@@ -204,4 +203,13 @@ void CopyThread::setErrorString(CTools::emCopyError errorType, QString filePath)
 bool CopyThread::hasCopyError()
 {
 	return !m_strError.isEmpty();
+}
+
+QString CopyThread::copyToDirectory(const QString &toDir,
+	bool addRoot, QString toRootDirName)
+{
+	QString newToDir = toDir;
+	if (addRoot)
+		newToDir.append("/").append(toRootDirName);
+	return newToDir;
 }
