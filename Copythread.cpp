@@ -39,14 +39,14 @@ void CopyThread::run()
 			copyToList = i.value();
 
 			strCopyFrom.replace("\\", "/");
-			//≤È’“πÊ‘Ú
+			//Êü•ÊâæËßÑÂàô
 			AddFileRules(strCopyFrom, copyToList);
 			if (hasCopyError())	break;
 		}
 		if (!hasCopyError())
 		{
 			sig_copyRuleCount(m_fileRules.size());
-			//øΩ±¥Œƒº˛
+			//Êã∑Ë¥ùÊñá‰ª∂
 			for each (QStringList var in m_fileRules)
 			{
 				sig_copyFromItem(var.at(0));
@@ -69,7 +69,7 @@ bool CopyThread::copyDirectoryRules(const QString &fromDir, const QString &toDir
 
 	QDir targetDir(toDir);
 
-	if (!targetDir.exists()){    /**< »Áπ˚ƒø±Íƒø¬º≤ª¥Ê‘⁄£¨‘ÚΩ¯––¥¥Ω® */
+	if (!targetDir.exists()){    /**< Â¶ÇÊûúÁõÆÊ†áÁõÆÂΩï‰∏çÂ≠òÂú®ÔºåÂàôËøõË°åÂàõÂª∫ */
 		if (!targetDir.mkpath(targetDir.absolutePath()))
 		{
 			setErrorString(CTools::UNABLE_CREATE, targetDir.absolutePath());
@@ -81,7 +81,7 @@ bool CopyThread::copyDirectoryRules(const QString &fromDir, const QString &toDir
 		if (fileInfo.fileName() == "." || fileInfo.fileName() == "..")
 			continue;
 		qDebug() << fileInfo.filePath();
-		if (fileInfo.isDir()){    /**< µ±Œ™ƒø¬º ±£¨µ›πÈµƒΩ¯––copy */		
+		if (fileInfo.isDir()){    /**< ÂΩì‰∏∫ÁõÆÂΩïÊó∂ÔºåÈÄíÂΩíÁöÑËøõË°åcopy */		
 			if (!findChildDir)
 				continue;
 			if (!copyDirectoryRules(fileInfo.filePath(),
@@ -89,12 +89,12 @@ bool CopyThread::copyDirectoryRules(const QString &fromDir, const QString &toDir
 				return false;
 		}
 		else{
-			//’˝‘Ú∆•≈‰
+			//Ê≠£ÂàôÂåπÈÖç
 			if (!m_regFile.isEmpty() && (
 				!m_regFile.exactMatch(fileInfo.filePath())))
 				continue;
 
-			//¥Ê¥¢πÊ‘Ú
+			//Â≠òÂÇ®ËßÑÂàô
 			m_fileRules.push_back(QStringList()<<fileInfo.filePath()<<toDir);
 		}
 	}
@@ -109,23 +109,25 @@ void CopyThread::AddFileHash(QString strFrom, QStringList listTo)
 void CopyThread::AddFileRules(QString strFrom, QStringList listTo)
 {
 	if (QDir::isRelativePath(strFrom))
-	{//œ‡∂‘¬∑æ∂ ¥¶¿Ì 
+	{//Áõ∏ÂØπË∑ØÂæÑ Â§ÑÁêÜ 
 		strFrom = m_ruleFilePath + strFrom;
 	}	
 	QFileInfo fromFileInfo(strFrom);
-	
+
 	for (int i = 0; i < listTo.size(); i++)
 	{
+		QString strTempForm = strFrom;
+
 		m_regFile = QRegExp();
 		bool bAddRoot = false;
 		QString toRootDirName;
 		bool bFindChirdDir = true;
-		int nIndex =  strFrom.indexOf(QRegExp("[*>]"));
+		int nIndex = strTempForm.indexOf(QRegExp("[*>]"));
 
-		QString suffixReg = strFrom.mid(nIndex,strFrom.length());
+		QString suffixReg = strTempForm.mid(nIndex, strTempForm.length());
 		qDebug() << suffixReg;
 	
-		// ∑«Œƒº˛√˚Ãÿ ‚◊÷∑˚
+		// ÈùûÊñá‰ª∂ÂêçÁâπÊÆäÂ≠óÁ¨¶
 		if (suffixReg.indexOf("*") != -1||
 			suffixReg.indexOf(">") != -1||
 			suffixReg.indexOf("?") != -1||
@@ -135,20 +137,20 @@ void CopyThread::AddFileRules(QString strFrom, QStringList listTo)
 			suffixReg.indexOf("|") != -1 ||
 			suffixReg.indexOf("\"") != -1 
 			)
-		{//¥Ê‘⁄’˝‘Ú				
+		{//Â≠òÂú®Ê≠£Âàô				
 			if (suffixReg.split("-").size() >= 2)
-			{//’˝‘Ú «∑Ò∆•≈‰◊”ƒø¬º
+			{//Ê≠£ÂàôÊòØÂê¶ÂåπÈÖçÂ≠êÁõÆÂΩï
 				bFindChirdDir = false;
 				suffixReg = suffixReg.split("-")[0];
 			}
 			else if (suffixReg.split("+").size() >= 2)
-			{// «∑Ò¥¥Ω®From∏˘ƒø¬º
+			{//ÊòØÂê¶ÂàõÂª∫FromÊ†πÁõÆÂΩï
 				bAddRoot = true;				
-				auto strDirs = strFrom.split("/");
+				auto strDirs = strTempForm.split("/");
 				toRootDirName = strDirs[strDirs.length()-2];
 			}
 			if (suffixReg.split(">").size() >= 2)
-			{//¥¥Ω® –¬∏˘ƒø¬º
+			{//ÂàõÂª∫ Êñ∞Ê†πÁõÆÂΩï
 				bAddRoot = true;
 				QStringList findList = QString(suffixReg).split(">");
 				if (findList.size() >= 2)
@@ -162,28 +164,28 @@ void CopyThread::AddFileRules(QString strFrom, QStringList listTo)
 				m_regFile = QRegExp(".*([\\|/])" + suffixReg);
 			}			
 			if (!m_regFile.isValid())
-				setErrorString(CTools::ERROR_REGEX, strFrom);
+				setErrorString(CTools::ERROR_REGEX, strTempForm);
 
-			strFrom = strFrom.mid(0, nIndex);
-			fromFileInfo.setFile(strFrom);
+			strTempForm = strTempForm.mid(0, nIndex);
+			fromFileInfo.setFile(strTempForm);
 		}
 		
 		if (hasCopyError())	break;
 
 		if (fromFileInfo.isFile())
-		{//¥Ê¥¢πÊ‘Ú
-			m_fileRules.push_back(QStringList() << strFrom << 
+		{//Â≠òÂÇ®ËßÑÂàô
+			m_fileRules.push_back(QStringList() << strTempForm <<
 				copyToDirectory(listTo.at(i), bAddRoot, toRootDirName ));
 		}
 		else if (fromFileInfo.isDir())
 		{
-			copyDirectoryRules(strFrom,
+			copyDirectoryRules(strTempForm,
 				copyToDirectory(listTo.at(i), bAddRoot, toRootDirName),
 				bFindChirdDir);
 		}
 		else
 		{
-			setErrorString(CTools::NON_EXISTENT, strFrom);
+			setErrorString(CTools::NON_EXISTENT, strTempForm);
 		}
 		if (hasCopyError())	break;
 	}
