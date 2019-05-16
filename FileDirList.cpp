@@ -12,11 +12,11 @@ FileDirList::FileDirList(QWidget *parent)
 	this->setAcceptDrops(true);
 	this->setDragEnabled(true);
 	this->setContextMenuPolicy(Qt::DefaultContextMenu);	
-	m_pDeleteItemAction = new QAction(QString::fromLocal8Bit("É¾³ı"),this);
+	m_pDeleteItemAction = new QAction(QString::fromLocal8Bit("åˆ é™¤"),this);
 	connect(m_pDeleteItemAction, SIGNAL(triggered()), this, SLOT(removeSelectItems()));
-	m_pClearAction = new QAction(QString::fromLocal8Bit("Çå¿Õ"),this);
+	m_pClearAction = new QAction(QString::fromLocal8Bit("æ¸…ç©º"),this);
 	connect(m_pClearAction, SIGNAL(triggered()), this, SLOT(ClearItems()));
-	m_pOpenAction = new QAction(QString::fromLocal8Bit("´ò¿ªÎÄ¼ş¼Ğ"),this);	
+	m_pOpenAction = new QAction(QString::fromLocal8Bit("æ‰“å¼€æ–‡ä»¶å¤¹"),this);	
 	connect(m_pOpenAction, &QAction::triggered, this, &FileDirList::OpenDir);
 	m_pMenu = new QMenu(this);
 	m_pMenu->addAction(m_pDeleteItemAction);
@@ -37,7 +37,7 @@ void FileDirList::setBuddyListWidget(QListWidget * pBuddyList)
 
 bool FileDirList::undoRepeat(QString fileName, bool andBuddy)
 {
-	//·ÀÖ¹ÖØ¸´Ìí¼Ó
+	//é˜²æ­¢é‡å¤æ·»åŠ 
 	QString strShow;
 	bool bRet = false;
 	for (int i = 0; i < this->count(); ++i)
@@ -89,12 +89,12 @@ void FileDirList::dragMoveEvent(QDragMoveEvent *e)
 void FileDirList::dropEvent(QDropEvent *event)
 {
 	if (event->mimeData()->hasFormat("text/uri-list"))
-	{//×ÊÔ´ÎÄ¼şÍÏ×§
+	{//èµ„æºæ–‡ä»¶æ‹–æ‹½
 		QList<QUrl> urls = event->mimeData()->urls();
 		for (int i = 0; i < urls.size(); i++)
 		{
 			QString fileName = urls.at(i).toLocalFile();
-			//·ÀÖ¹ÖØ¸´Ìí¼Ó
+			//é˜²æ­¢é‡å¤æ·»åŠ 
 			if (typeCheck(fileName) && !undoRepeat(fileName, true))
 			{
 				appendItem(fileName);
@@ -102,7 +102,7 @@ void FileDirList::dropEvent(QDropEvent *event)
 		}
 		return;
 	}
-	//ÄÚ²¿ÍÏ×§
+	//å†…éƒ¨æ‹–æ‹½
 	FileDirList* source = qobject_cast<FileDirList*>(event->source());
 
 	if (!source || source == this) return;
@@ -112,11 +112,11 @@ void FileDirList::dropEvent(QDropEvent *event)
 	{
 		QListWidgetItem* pItem = items.at(i);
 		QString filePath = pItem->text();
-		//·ÀÖ¹ÖØ¸´Ìí¼Ó
+		//é˜²æ­¢é‡å¤æ·»åŠ 
 		if (typeCheck(filePath) && !undoRepeat(filePath, source != m_pBuddyList))
 		{
 			appendItem(filePath);
-			//É¾³ıÔ´Item		
+			//åˆ é™¤æºItem		
 			source->takeItem(source->row(pItem));
 		}
 	}
@@ -160,20 +160,19 @@ QListWidgetItem * FileDirList::appendItem(QString filePath)
 bool FileDirList::isValidFilePath(QString& filePath)
 {
 	if (QDir::isRelativePath(filePath))
-	{//Ïà¶ÔÂ·¾¶ ´¦Àí 
+	{//ç›¸å¯¹è·¯å¾„ å¤„ç† 
 		filePath = CopyThread::getInstance()->m_ruleFilePath + filePath;
 	}
 	int nIndex = filePath.indexOf(QRegExp("[*>]"));
 
 	if (nIndex != -1)
 	{
-		filePath = filePath.mid(0, nIndex);
-		QFileInfo fileInfo(filePath);
-		if (fileInfo.isFile())
-		{
-			filePath.append("/../");
-		}
-		
+		filePath = filePath.mid(0, nIndex);		
+	}
+	QFileInfo fileInfo(filePath);
+	if (fileInfo.isFile())
+	{
+		filePath.append("/../");
 	}
 	return QFileInfo::exists(filePath);
 }
