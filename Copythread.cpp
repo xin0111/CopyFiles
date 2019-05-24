@@ -124,7 +124,9 @@ void CopyThread::AddFileRules(QString strFrom, QStringList listTo)
 		bool bFindChirdDir = true;
 		int nIndex = strTempForm.indexOf(QRegExp("[*>]"));
 
-		QString suffixReg = strTempForm.mid(nIndex, strTempForm.length());
+		QString suffixReg = nIndex!=-1?
+			strTempForm.mid(nIndex, strTempForm.length()):
+			"";
 		qDebug() << suffixReg;
 	
 		// 非文件名特殊字符
