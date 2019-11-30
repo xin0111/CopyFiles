@@ -103,7 +103,7 @@ bool CopyThread::copyDirectoryRules(const QString &fromDir, const QString &toDir
 
 void CopyThread::AddFileHash(QString strFrom, QStringList listTo)
 {
-	m_fileHash[strFrom] = listTo;
+	m_fileHash[strFrom] << listTo;
 }
 
 void CopyThread::AddFileRules(QString strFrom, QStringList listTo)
