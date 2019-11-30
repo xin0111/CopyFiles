@@ -15,11 +15,17 @@ CopyFilesWindow::CopyFilesWindow(QWidget *parent)
 : QMainWindow(parent), m_nStep(0)
 {
 	ui.setupUi(this);	
+	// create the GUI
+	QSettings settings("CopyFiles", "Settings");
+	settings.beginGroup("StartPath");
+	restoreGeometry(settings.value("geometry").toByteArray());
+	bool bCheckHistory = settings.value("check").toBool();
+
 	this->setWindowIcon(QIcon(":/icon1.ico"));
 	m_autoHide = new AutoHide(this);	
 	m_strTitle = this->windowTitle();
 	ui.dockWidget->setVisible(false);	
-	ui.dockWidget->setWindowTitle(QString::fromLocal8Bit("ÀúÊ·¼ÇÂ¼"));
+	ui.dockWidget->setWindowTitle(QString::fromLocal8Bit("å†å²è®°å½•"));
 	ui.dockWidget->setFeatures(QDockWidget::NoDockWidgetFeatures);
 	ui.dockWidget->setAllowedAreas(Qt::LeftDockWidgetArea);
 	ui.tabWidget_rule->setAcceptDrops(true);
@@ -35,7 +41,7 @@ CopyFilesWindow::CopyFilesWindow(QWidget *parent)
 		QFileInfo fileInfo(filePath);
 		if (!fileInfo.isFile())
 		{
-			tipMessage(QString::fromLocal8Bit("Î´ÕÒµ½ÎÄ¼ş£º").append(filePath));
+			tipMessage(QString::fromLocal8Bit("æœªæ‰¾åˆ°æ–‡ä»¶ï¼š").append(filePath));
 		}
 		else
 		{
@@ -55,11 +61,16 @@ CopyFilesWindow::CopyFilesWindow(QWidget *parent)
 			ui.dockWidget->hide();
 		}		
 	});
+
+	m_autoHide->setChecked(bCheckHistory);
 }
 
 CopyFilesWindow::~CopyFilesWindow()
 {
-
+	QSettings settings("CopyFiles", "Settings");
+	settings.beginGroup("StartPath");
+	settings.setValue("geometry", QVariant(saveGeometry()));
+	settings.setValue("check", m_autoHide->getChecked());
 }
 
 
@@ -86,7 +97,7 @@ void CopyFilesWindow::on_pushButton_start_clicked()
 {	
 	if (CopyThread::getInstance()->isRunning())
 	{
-		tipMessage(QString::fromLocal8Bit("ÕıÔÚ¿½±´ÖĞ..."));
+		tipMessage(QString::fromLocal8Bit("æ­£åœ¨æ‹·è´ä¸­..."));
 		return;
 	}
 	int nRule = ui.tabWidget_rule->count();
@@ -113,7 +124,7 @@ void CopyFilesWindow::on_pushButton_start_clicked()
 		}
 	}
 	CopyThread::getInstance()->start();
-	ui.pushButton_start->setText(QString::fromLocal8Bit("ÕıÔÚ²éÕÒÎÄ¼ş..."));
+	ui.pushButton_start->setText(QString::fromLocal8Bit("æ­£åœ¨æŸ¥æ‰¾æ–‡ä»¶..."));
 
 }
 
@@ -122,7 +133,7 @@ void CopyFilesWindow::on_setMaxRange(int nMaxRange)
 	m_nMaxRange = nMaxRange;
 	ui.progressBar->setRange(0, m_nMaxRange);
 	ui.progressBar->setVisible(true);
-	ui.pushButton_start->setText(QString::fromLocal8Bit("ÕıÔÚ¿½±´..."));
+	ui.pushButton_start->setText(QString::fromLocal8Bit("æ­£åœ¨æ‹·è´..."));
 }
 
 void CopyFilesWindow::on_copyFromItemTip(QString strItem)
@@ -137,14 +148,14 @@ void CopyFilesWindow::on_copyFromItemTip(QString strItem)
 
 void CopyFilesWindow::on_reset(bool bSuccessed, QString strMsg)
 {
-	ui.pushButton_start->setText(QString::fromLocal8Bit("¿ªÊ¼¸´ÖÆ"));
+	ui.pushButton_start->setText(QString::fromLocal8Bit("å¼€å§‹å¤åˆ¶"));
 	ui.progressBar->setValue(0);
 	ui.progressBar->setVisible(false);
 	ui.label_progress->setText("");
 	if (!bSuccessed)
 		tipMessage(strMsg);
-	tipMessage(bSuccessed ? QString::fromLocal8Bit("¸´ÖÆÍê³É.") : 
-		QString::fromLocal8Bit("¸´ÖÆÖÕÖ¹."));
+	tipMessage(bSuccessed ? QString::fromLocal8Bit("å¤åˆ¶å®Œæˆ.") : 
+		QString::fromLocal8Bit("å¤åˆ¶ç»ˆæ­¢."));
 }
 
 void CopyFilesWindow::importFromXml(QString filePath,bool fromHistory /*= false*/)
@@ -233,7 +244,7 @@ void CopyFilesWindow::exportToXml(QString filePath)
 	doc.appendChild(root);
 
 	CTools::saveXml(doc, filePath);
-	tipMessage(QString::fromLocal8Bit("µ¼³öÍê³É."));
+	tipMessage(QString::fromLocal8Bit("å¯¼å‡ºå®Œæˆ."));
 
 	QFileInfo fileInfo(filePath);
 	CopyThread::getInstance()->m_ruleFilePath = fileInfo.absolutePath().append("/");
@@ -242,7 +253,7 @@ void CopyFilesWindow::exportToXml(QString filePath)
 
 void CopyFilesWindow::on_pushButton_export_clicked()
 {
-	QString filePath = QFileDialog::getSaveFileName(this, QString::fromLocal8Bit("±£´æÎÄ¼ş"),
+	QString filePath = QFileDialog::getSaveFileName(this, QString::fromLocal8Bit("ä¿å­˜æ–‡ä»¶"),
 		CopyThread::getInstance()->m_ruleFilePath +
 		"CopyRule.xml",	"Xml Files (*.xml )");
 	if (!filePath.isEmpty())
@@ -263,7 +274,7 @@ void CopyFilesWindow::on_pushButton_import_clicked()
 
 void CopyFilesWindow::tipMessage(QString msg)
 {
-	QMessageBox::information(this,QString::fromLocal8Bit("ÌáÊ¾"),msg);
+	QMessageBox::information(this,QString::fromLocal8Bit("æç¤º"),msg);
 }
 
 void CopyFilesWindow::addNewPage()
@@ -295,7 +306,7 @@ void CopyFilesWindow::addNewPage()
 	nIndex = (nValue != -1 ) ? nValue : nCount;
 
 	int addIndex = ui.tabWidget_rule->addTab(pPage,
-		QString::fromLocal8Bit("¹æÔòÒ³%1").arg(nIndex + 1));
+		QString::fromLocal8Bit("è§„åˆ™é¡µ%1").arg(nIndex + 1));
 	ui.tabWidget_rule->setCurrentIndex(addIndex);
 }
 
@@ -310,27 +321,28 @@ void CopyFilesWindow::resetPage()
 #define  LocalString_CN(str) QString::fromLocal8Bit(str).toStdString().c_str()
 void CopyFilesWindow::on_pushButton_Help_clicked()
 {
-	static QString help = QString::fromLatin1("<h4>") + tr(LocalString_CN("ÌØ¶¨ÕıÔòÊ¹ÓÃ¹æÔò\n")) + QString::fromLatin1("</h4>"
-		"<p>") + tr(LocalString_CN("+:")) + tr(LocalString_CN("<b>£¨test/*.+£©»ò£¨test/*.ºó×º+£©</b> ×Ô¶¯´´½¨¸ùÄ¿Â¼(test)")) + QString::fromLatin1("</p>"	
-		"<p>") + tr(LocalString_CN("-:")) + tr(LocalString_CN("<b>£¨test/*.-£©»ò£¨test/*.ºó×º-£©</b>  Ö»¿½±´¸ùÄ¿Â¼(test)ÏÂµÄÆ¥ÅäÏî")) + QString::fromLatin1("</p>"
-		"<p>") + tr(LocalString_CN(">:")) + tr(LocalString_CN("<b>£¨test/>ĞÂÄ¿Â¼(¶à¼¶)£©»ò£¨test/ÎÄ¼ş>ĞÂÄ¿Â¼(¶à¼¶)£©»ò  <br> £¨test/*.ºó×º>ĞÂÄ¿Â¼(¶à¼¶)£©</b> ¿½±´µ½(¶à¼¶)ĞÂÄ¿Â¼")) + QString::fromLatin1("</p>"
+	static QString help = QString::fromLatin1("<h4>") + tr(LocalString_CN("ç‰¹å®šæ­£åˆ™ä½¿ç”¨è§„åˆ™\n")) + QString::fromLatin1("</h4>"
+		"<p>") + tr(LocalString_CN("+:")) + tr(LocalString_CN("<b>ï¼ˆtest/*.+ï¼‰æˆ–ï¼ˆtest/*.åç¼€+ï¼‰</b> è‡ªåŠ¨åˆ›å»ºæ ¹ç›®å½•(test)")) + QString::fromLatin1("</p>"	
+		"<p>") + tr(LocalString_CN("-:")) + tr(LocalString_CN("<b>ï¼ˆtest/*.-ï¼‰æˆ–ï¼ˆtest/*.åç¼€-ï¼‰</b>  åªæ‹·è´æ ¹ç›®å½•(test)ä¸‹çš„åŒ¹é…é¡¹")) + QString::fromLatin1("</p>"
+		"<p>") + tr(LocalString_CN(">:")) + tr(LocalString_CN("<b>ï¼ˆtest/>æ–°ç›®å½•(å¤šçº§)ï¼‰æˆ–ï¼ˆtest/æ–‡ä»¶>æ–°ç›®å½•(å¤šçº§)ï¼‰æˆ–  <br> ï¼ˆtest/*.åç¼€>æ–°ç›®å½•(å¤šçº§)ï¼‰</b> æ‹·è´åˆ°(å¤šçº§)æ–°ç›®å½•")) + QString::fromLatin1("</p>"
 		"<p>");
 	QMessageBox msgBox;
 	msgBox.setText(help);	
 	msgBox.setWindowIcon(this->windowIcon());
 
 	QButtonGroup btngroup;
-	QCheckBox * pCheckBox = new QCheckBox(QString::fromLocal8Bit("ÏÔÊ¾ÀúÊ·"),&msgBox);
+	QCheckBox * pCheckBox = new QCheckBox(QString::fromLocal8Bit("æ˜¾ç¤ºå†å²"),&msgBox);
 	pCheckBox->setChecked(m_autoHide->historyVisiable());
 	msgBox.layout()->addWidget(pCheckBox);		
 	msgBox.addButton(QMessageBox::Ok);
-	msgBox.addButton(QStringLiteral("×¢²á"), QMessageBox::AcceptRole);
+	msgBox.addButton(QStringLiteral("æ³¨å†Œ"), QMessageBox::AcceptRole);
 
 	msgBox.setDefaultButton(QMessageBox::Ok);	
 	connect(pCheckBox, &QCheckBox::stateChanged, [=](int state)
 	{
+		m_autoHide->setChecked(false);
 		m_autoHide->setHistoryVisiable(state);
-		m_autoHide->setVisible(state);
+		m_autoHide->setVisible(state);		
 	});
 	if (QMessageBox::AcceptRole == msgBox.exec())
 	{
@@ -363,7 +375,7 @@ void CopyFilesWindow::registerApp()
 {
 	//file
 	QSettings regFile("HKEY_CLASSES_ROOT\\*\\shell\\CopyFiles", QSettings::NativeFormat);
-	regFile.setValue("icon", QCoreApplication::arguments()[0]); //ÉèÖÃ×¢²á±íÖµ
+	regFile.setValue("icon", QCoreApplication::arguments()[0]); //è®¾ç½®æ³¨å†Œè¡¨å€¼
 	regFile.beginGroup("command");	
 	regFile.setValue("Default", QCoreApplication::arguments()[0] + " -f " + "%1");
 	regFile.endGroup();
