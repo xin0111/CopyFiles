@@ -1,4 +1,4 @@
-﻿#include "autohide.h"
+#include "autohide.h"
 #include <QtWidgets/QListWidget>
 #include <QtWidgets/QVBoxLayout>
 #include <QCheckBox>
@@ -273,14 +273,16 @@ void AutoHide::deleteHistory(const QString& value)
 
 void AutoHide::setHistoryVisiable(bool bVisiable)
 {
-	QSettings settings(AUTOHIDE_BASEREG, AUTOHIDE_HISTORY);
-	settings.setValue("Enable", bVisiable);	
+	QSettings settings(AUTOHIDE_BASEREG, "Settings");
+	settings.beginGroup("StartPath");
+	settings.setValue("history", bVisiable);	
 }
 
 bool AutoHide::historyVisiable()
 {
-	QSettings settings(AUTOHIDE_BASEREG, AUTOHIDE_HISTORY);	
-	bool bEnable = settings.value("Enable").toBool();	
+	QSettings settings(AUTOHIDE_BASEREG, "Settings");
+	settings.beginGroup("StartPath");
+	bool bEnable = settings.value("history").toBool();	
 	return bEnable;
 }
 
@@ -322,4 +324,14 @@ bool AutoHide::checkPath(const QSettings& settings, const QString& filePath, QSt
 		}
 	}
 	return false;
+}
+
+void AutoHide::setChecked(bool bChecked)
+{
+	ui->checkBox->setChecked(bChecked);
+}
+
+bool AutoHide::getChecked()
+{
+	return ui->checkBox->isChecked();
 }
