@@ -1,46 +1,55 @@
-#ifndef COPYFILES_H
-#define COPYFILES_H
+#ifndef AUTOHIDE_H
+#define AUTOHIDE_H
 
-#include <QtWidgets/QMainWindow>
-#include "ui_copyfiles.h"
+#include <QWidget>
+#include <QMouseEvent>
+#include <QSettings>
 
-class QProgressBar;
-class AutoHide;
-class CopyFilesWindow : public QMainWindow
+enum Direction
 {
-	Q_OBJECT
-
+    Up = 0x0001,
+    Left = 0x0010,
+    Right = 0x0100
+};
+class AutoHideUI;
+class AutoHide : public QWidget
+{
+    Q_OBJECT
 public:
-	CopyFilesWindow(QWidget *parent = 0);
-	~CopyFilesWindow();
-public:
-	void tipMessage(QString msg);
-public slots:
-	void on_pushButton_addPage_clicked();
-	void on_pushButton_clear_clicked();
-	void on_pushButton_start_clicked();
-	void on_pushButton_deletePage_clicked();
-	void on_copyFromItemTip(QString strItem);	
-	void on_reset(bool bSuccessed, QString strMsg);
-	void on_pushButton_export_clicked();
-	void on_pushButton_import_clicked();	
-	void on_setMaxRange(int nMaxRange);
-	void on_pushButton_Help_clicked();
-
-public:
-	void importFromXml(QString filePath,bool fromHistory=false);
-	void exportToXml(QString filePath);
+    explicit AutoHide(QWidget *parent = 0);
+    ~AutoHide();
+	void SetAttr(Direction direction, bool bIsAutoHide);
+	void recordHistory(QString filePath);
+	void setHistoryVisiable(bool bVisiable);
+	bool historyVisiable();
+	void setChecked(bool bChecked);
+	bool getChecked();
+signals:
+	void sig_ItemDoubleClicked(QString);
+	void sig_fixed(bool bFixed);
 protected:
 	bool eventFilter(QObject *watched, QEvent *event);
+    void leaveEvent(QEvent *event);
 private:
-	void addNewPage();	
-	void resetPage();
-	void registerApp();
-	Ui::CopyFilesClass ui;
-	int m_nStep;
-	int m_nMaxRange;	
-	QString m_strTitle;
-	AutoHide* m_autoHide;
+	void hideWidget();
+	void showWidget();
+	void addListItem(const QString& filePath);
+	void displayHistory();
+	void deleteHistory(const QString& value);
+	void removeSelectItems();
+	bool checkPath(const QSettings& settings, const QString& filePath, QString& keyFind = QString());
+private:
+	bool m_isAutoHide;
+    Direction m_enDriection;
+	//父窗体的宽度
+	int m_nParentWidth;
+	//边界
+	int m_borderOffset;
+	//动画时长
+	int m_nAnimaDuration;	
+private://ui
+	void initUi();
+	AutoHideUI* ui;
 };
 
-#endif // COPYFILES_H
+#endif // AUTOHIDE_H
