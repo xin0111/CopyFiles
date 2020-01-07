@@ -265,7 +265,7 @@ void CopyFilesWindow::on_pushButton_export_clicked()
 void CopyFilesWindow::on_pushButton_import_clicked()
 {
 	QString fileName = QFileDialog::getOpenFileName(this,
-		tr("Open File"), "", tr("Xml Files (*.xml )"));
+		tr("Open File"), CopyThread::getInstance()->m_ruleFilePath, tr("Xml Files (*.xml )"));
 	if (!fileName.isEmpty())
 	{
 		importFromXml(fileName);
