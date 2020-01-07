@@ -243,6 +243,8 @@ void CopyFilesWindow::exportToXml(QString filePath)
 	}
 	doc.appendChild(root);
 
+	m_autoHide->recordHistory(filePath);
+	
 	CTools::saveXml(doc, filePath);
 	tipMessage(QString::fromLocal8Bit("导出完成."));
 
